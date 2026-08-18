@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Windfall — Savings with a shot at 100x</title>
+<meta name="description" content="Deposit stablecoins. Keep your principal. Every week your deposit enters a prize draw funded by pooled yield. Withdraw anytime.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+<style>
+  :root{
+    --bg:#0b0d12;--panel:#12151d;--line:#1f2432;--text:#e8ebf2;--muted:#8b93a7;
+    --accent:#7cf5c8;--accent2:#ffd166;--danger:#ff7b7b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
+  a{color:var(--accent)}
+  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
+  header{padding:22px 0;display:flex;justify-content:space-between;align-items:center}
+  .logo{font-weight:800;letter-spacing:.5px;font-size:20px}
+  .logo span{color:var(--accent)}
+  nav a{color:var(--muted);text-decoration:none;margin-left:18px;font-size:14px}
+  .hero{padding:70px 0 40px;text-align:center}
+  .hero h1{font-size:clamp(34px,6vw,60px);line-height:1.08;font-weight:850;letter-spacing:-1px}
+  .hero h1 em{font-style:normal;color:var(--accent)}
+  .hero p.sub{color:var(--muted);font-size:19px;max-width:640px;margin:18px auto 0}
+  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+  .btn{display:inline-block;padding:14px 22px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent;cursor:pointer;font-size:16px}
+  .btn.primary{background:var(--accent);color:#06251b}
+  .btn.ghost{border-color:var(--line);color:var(--text);background:var(--panel)}
+  .pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-bottom:16px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:40px 0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
+  .card h3{font-size:17px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:15px}
+  .num{font-size:34px;font-weight:800;color:var(--accent2)}
+  section{padding:30px 0}
+  h2{font-size:26px;margin-bottom:14px}
+  .steps{counter-reset:s;display:grid;gap:14px}
+  .step{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .step::before{counter-increment:s;content:counter(s);flex:0 0 32px;height:32px;border-radius:50%;background:var(--accent);color:#06251b;font-weight:800;display:flex;align-items:center;justify-content:center}
+  .step p{color:var(--muted)}
+  form.wait{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
+  form.wait input{flex:1 1 260px;max-width:360px;padding:14px;border-radius:12px;border:1px solid var(--line);background:#0e1118;color:var(--text);font-size:16px}
+  .fine{color:var(--muted);font-size:13px;margin-top:10px;text-align:center}
+  .warn{border-left:3px solid var(--danger);padding:12px 16px;background:#161018;border-radius:8px;color:#e6c9c9;font-size:14px}
+  footer{padding:40px 0 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:40px}
+  footer p{margin-bottom:8px}
+  .calc{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
+  .calc input[type=range]{width:100%}
+  @media (max-width:600px){.calc{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Wind<span>fall</span></div>
+    <nav><a href="#how">How it works</a><a href="#odds">Odds</a><a href="#faq">FAQ</a><a href="#deposit">Deposit</a></nav>
+  </header>
+
+  <section class="hero">
+    <div class="pill">Non-custodial · Withdraw anytime · Built on PoolTogether</div>
+    <h1>Savings that keep your principal.<br><em>With a shot at 100x.</em></h1>
+    <p class="sub">Deposit stablecoins. Your money earns yield in a lending pool. Instead of paying you a boring 4%, that yield funds weekly prize draws. Win big, or take your deposit back any time.</p>
+    <div class="cta">
+      <a class="btn primary" id="depositBtn" href="#deposit">Deposit USDC</a>
+      <a class="btn ghost" href="#waitlist">Join the waitlist</a>
+    </div>
+  </section>
+
+  <div class="grid">
+    <div class="card"><div class="num">100%</div><h3>Principal stays yours</h3><p>You never lose your deposit. Only the pooled yield is at stake. Smart contract, not a bank — you hold the keys.</p></div>
+    <div class="card"><div class="num">Weekly</div><h3>Prize draws</h3><p>Every week, on-chain randomness picks winners. More deposit, more entries. Prizes range from small to the shared grand prize.</p></div>
+    <div class="card"><div class="num">$1</div><h3>Minimum</h3><p>Runs on Base, so gas costs pennies. Try it with a dollar. Withdraw whenever you like.</p></div>
+  </div>
+
+  <section id="how">
+    <h2>How it works</h2>
+    <div class="steps">
+      <div class="step"><div><b>Deposit USDC into the Windfall vault.</b><p>Your wallet sends USDC straight to an audited PoolTogether prize vault. We never touch it.</p></div></div>
+      <div class="step"><div><b>The vault lends your USDC.</b><p>Deposits earn yield in Aave on Base. That yield — not your principal — flows into the prize pool.</p></div></div>
+      <div class="step"><div><b>Weekly draws pick winners.</b><p>Chainlink VRF randomness. Your odds scale with your balance. Winners' prizes land in their wallet automatically.</p></div></div>
+      <div class="step"><div><b>Withdraw anytime.</b><p>Burn your vault shares, get your USDC back. No lockups, no penalties.</p></div></div>
+    </div>
+  </section>
+
+  <section id="odds">
+    <h2>What are my odds?</h2>
+    <div class="card">
+      <div class="calc">
+        <div>
+          <label for="dep">Your deposit: <b id="depVal">$100</b></label>
+          <input id="dep" type="range" min="1" max="10000" value="100" step="1">
+        </div>
+        <div>
+          <label for="tvl">Total in vault: <b id="tvlVal">$50,000</b></label>
+          <input id="tvl" type="range" min="1000" max="10000000" value="50000" step="1000">
+        </div>
+      </div>
+      <p style="margin-top:14px" id="oddsOut"></p>
+      <p class="fine" style="text-align:left">Illustrative only. Assumes ~4% APY on the pool, all yield to prizes, one grand prize per year plus weekly small prizes. Real prize structure is set by the PoolTogether protocol and changes with pool size.</p>
+    </div>
+  </section>
+
+  <section id="deposit">
+    <h2>Deposit</h2>
+    <div class="card">
+      <p id="depositCopy">Deposits go through the Cabana app (the PoolTogether interface). You'll need a wallet with USDC on Base.</p>
+      <div class="cta" style="justify-content:flex-start">
+        <a class="btn primary" id="depositLink" href="#" target="_blank" rel="noopener">Open vault on Cabana ↗</a>
+        <a class="btn ghost" href="https://www.coinbase.com/onboarding" target="_blank" rel="noopener">Need USDC on Base? ↗</a>
+      </div>
+      <p class="fine" style="text-align:left;margin-top:14px" id="vaultNote"></p>
+    </div>
+  </section>
+
+  <section id="waitlist">
+    <h2>Not on crypto yet? Get the card-to-deposit version first.</h2>
+    <p style="color:var(--muted)">We're building a version where you deposit with a debit card and never see a wallet. Leave your email.</p>
+    <form class="wait" action="https://formsubmit.co/pfelizarta@retailhedging.com" method="POST">
+      <input type="hidden" name="_subject" value="Windfall waitlist signup">
+      <input type="hidden" name="_captcha" value="false">
+      <input type="hidden" name="_next" id="nextUrl" value="">
+      <input type="text" name="_honey" style="display:none">
+      <input type="email" name="email" placeholder="you@email.com" required>
+      <button class="btn primary" type="submit">Join waitlist</button>
+    </form>
+    <p class="fine">No spam. One email when it's live.</p>
+  </section>
+
+  <section id="faq">
+    <h2>FAQ</h2>
+    <div class="steps" style="counter-reset:none">
+      <div class="card"><h3>Is my deposit guaranteed?</h3><p>No. Nothing here is guaranteed by anyone. Your USDC sits in a smart contract that lends to Aave. Smart-contract bugs, stablecoin depeg, or lending-protocol failure could lose funds. Only deposit what you can afford to lose.</p></div>
+      <div class="card"><h3>Do I earn interest?</h3><p>Not directly. All yield goes to the prize pool. Your expected value roughly equals the yield you'd have earned — it's just paid out as prizes to random depositors instead of evenly.</p></div>
+      <div class="card"><h3>Who holds my money?</h3><p>You do. It's a non-custodial vault. Windfall never has access to your funds. We earn a small percentage of the yield as a fee.</p></div>
+      <div class="card"><h3>Is this a lottery?</h3><p>It's prize-linked savings on the PoolTogether protocol. You don't buy tickets and you keep your principal. Check your local laws; not available where prohibited.</p></div>
+    </div>
+  </section>
+
+  <div class="warn" style="margin-top:30px">
+    <b>Risk notice.</b> Windfall is an early experiment. Not a bank, not FDIC/NCUA insured, not investment advice, no guarantee of return or principal. Uses third-party smart contracts (PoolTogether, Aave, Chainlink) and stablecoins (USDC). Not offered where prohibited by law.
+  </div>
+
+  <footer>
+    <p>© <span id="yr"></span> Windfall. Built on <a href="https://pooltogether.com" target="_blank" rel="noopener">PoolTogether V5</a> via <a href="https://cabana.fi" target="_blank" rel="noopener">Cabana</a>.</p>
+    <p><a href="https://github.com/Retail-Hedging/windfall" target="_blank" rel="noopener">Source</a></p>
+  </footer>
+</div>
+
+<script>
+  // === CONFIG: set after deploying the vault via https://factory.cabana.fi ===
+  const CHAIN_ID = 8453;               // Base
+  const VAULT_ADDRESS = "";            // e.g. "0xabc..." — leave empty until deployed
+  const CABANA_APP = "https://app.cabana.fi";
+  // ==========================================================================
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+  document.getElementById('nextUrl').value = location.origin + location.pathname + '?joined=1#waitlist';
+  if (new URLSearchParams(location.search).get('joined')) {
+    document.querySelector('#waitlist h2').textContent = "You're on the list. We'll email you when card deposits are live.";
+    document.querySelector('form.wait').style.display = 'none';
+  }
+
+  const link = document.getElementById('depositLink');
+  const note = document.getElementById('vaultNote');
+  if (VAULT_ADDRESS) {
+    link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${VAULT_ADDRESS}`;
+    note.textContent = `Vault: ${VAULT_ADDRESS} on Base. Verify the address matches before depositing.`;
+  } else {
+    link.href = `${CABANA_APP}/vaults`;
+    note.textContent = 'Windfall vault is being deployed. Until then the button opens the Cabana vault list.';
+  }
+
+  // odds calculator
+  const dep = document.getElementById('dep'), tvl = document.getElementById('tvl');
+  const fmt = n => '$' + Number(n).toLocaleString();
+  function calc(){
+    const d = +dep.value, t = Math.max(+tvl.value, d);
+    document.getElementById('depVal').textContent = fmt(d);
+    document.getElementById('tvlVal').textContent = fmt(t);
+    const apy = 0.04;
+    const yearlyYield = t * apy;
+    const grand = yearlyYield * 0.5;                 // half of yield → one grand prize/yr
+    const weeklyPool = (yearlyYield * 0.5) / 52;     // other half → weekly small prizes
+    const pGrand = d / t;                            // one winner per year
+    const mult = grand / d;
+    const oneIn = Math.round(1 / pGrand);
+    document.getElementById('oddsOut').innerHTML =
+      `Grand prize ≈ <b>${fmt(Math.round(grand))}</b> (${mult.toFixed(0)}× your deposit). Your chance this year ≈ <b>1 in ${oneIn.toLocaleString()}</b>. ` +
+      `Weekly prize pool ≈ <b>${fmt(Math.round(weeklyPool))}</b> split among several winners.`;
+  }
+  dep.oninput = tvl.oninput = calc; calc();
+</script>
+</body>
+</html>
