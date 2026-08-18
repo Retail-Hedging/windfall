@@ -167,8 +167,10 @@
     link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${VAULT_ADDRESS}`;
     note.textContent = `Vault: ${VAULT_ADDRESS} on Base. Verify the address matches before depositing.`;
   } else {
-    link.href = `${CABANA_APP}/vaults`;
-    note.textContent = 'Windfall vault is being deployed. Until then the button opens the Cabana vault list.';
+    // PoolTogether's official Prize USDC vault on Base, until the Windfall vault is deployed
+    const FALLBACK = "0x7f5C2b379b88499aC2B997Db583f8079503f25b9";
+    link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${FALLBACK}`;
+    note.textContent = `Windfall vault is being deployed. Until then this opens PoolTogether's official Prize USDC vault on Base (${FALLBACK}) — same mechanics, no Windfall fee.`;
   }
 
   // odds calculator
