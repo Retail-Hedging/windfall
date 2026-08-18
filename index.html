@@ -77,7 +77,7 @@
     <h2>How it works</h2>
     <div class="steps">
       <div class="step"><div><b>Deposit USDC into the Windfall vault.</b><p>Your wallet sends USDC straight to an audited PoolTogether prize vault. We never touch it.</p></div></div>
-      <div class="step"><div><b>The vault lends your USDC.</b><p>Deposits earn yield in Aave on Base. That yield — not your principal — flows into the prize pool.</p></div></div>
+      <div class="step"><div><b>The vault lends your USDC.</b><p>Deposits earn yield in <span class="yieldSrc">a blue-chip lending market</span> on Base. That yield — not your principal — flows into the prize pool.</p></div></div>
       <div class="step"><div><b>Weekly draws pick winners.</b><p>Chainlink VRF randomness. Your odds scale with your balance. Winners' prizes land in their wallet automatically.</p></div></div>
       <div class="step"><div><b>Withdraw anytime.</b><p>Burn your vault shares, get your USDC back. No lockups, no penalties.</p></div></div>
     </div>
@@ -104,10 +104,16 @@
   <section id="deposit">
     <h2>Deposit</h2>
     <div class="card">
-      <p id="depositCopy">Deposits go through the Cabana app (the PoolTogether interface). You'll need a wallet with USDC on Base.</p>
+      <p id="depositCopy">Deposits happen in the Cabana app (the PoolTogether interface) from your own wallet. Never had a wallet? Follow the four steps — about 10 minutes, no seed phrase.</p>
+      <div class="steps" style="margin:16px 0">
+        <div class="step"><div><b>Create a wallet with a passkey.</b><p>Open <a href="https://wallet.coinbase.com" target="_blank" rel="noopener">wallet.coinbase.com</a> → Create → Face ID / Windows Hello. This is a Coinbase Smart Wallet: no seed phrase, no extension.</p></div></div>
+        <div class="step"><div><b>Fund it with USDC on Base.</b><p>In the wallet tap Buy / Fund → debit card → choose <b>USDC</b> on the <b>Base</b> network. $5–10 is plenty for a test. Gas on Base is fractions of a cent and is covered from your USDC.</p></div></div>
+        <div class="step"><div><b>Open the vault and connect.</b><p>Click the button below → Connect → Coinbase Wallet. Check the vault address in the URL matches the one shown under the button.</p></div></div>
+        <div class="step"><div><b>Deposit. Withdraw anytime.</b><p>Enter an amount → Deposit → approve in your wallet. You'll see your balance and odds on the same page. Withdraw returns USDC to your wallet immediately.</p></div></div>
+      </div>
       <div class="cta" style="justify-content:flex-start">
         <a class="btn primary" id="depositLink" href="#" target="_blank" rel="noopener">Open vault on Cabana ↗</a>
-        <a class="btn ghost" href="https://www.coinbase.com/onboarding" target="_blank" rel="noopener">Need USDC on Base? ↗</a>
+        <a class="btn ghost" href="https://wallet.coinbase.com" target="_blank" rel="noopener">Create wallet ↗</a>
       </div>
       <p class="fine" style="text-align:left;margin-top:14px" id="vaultNote"></p>
     </div>
@@ -130,7 +136,7 @@
   <section id="faq">
     <h2>FAQ</h2>
     <div class="steps" style="counter-reset:none">
-      <div class="card"><h3>Is my deposit guaranteed?</h3><p>No. Nothing here is guaranteed by anyone. Your USDC sits in a smart contract that lends to Aave. Smart-contract bugs, stablecoin depeg, or lending-protocol failure could lose funds. Only deposit what you can afford to lose.</p></div>
+      <div class="card"><h3>Is my deposit guaranteed?</h3><p>No. Nothing here is guaranteed by anyone. Your USDC sits in a smart contract that lends to <span class="yieldSrc">a lending market</span>. Smart-contract bugs, stablecoin depeg, or lending-protocol failure could lose funds. Only deposit what you can afford to lose.</p></div>
       <div class="card"><h3>Do I earn interest?</h3><p>Not directly. All yield goes to the prize pool. Your expected value roughly equals the yield you'd have earned — it's just paid out as prizes to random depositors instead of evenly.</p></div>
       <div class="card"><h3>Who holds my money?</h3><p>You do. It's a non-custodial vault. Windfall never has access to your funds. We earn a small percentage of the yield as a fee.</p></div>
       <div class="card"><h3>Is this a lottery?</h3><p>It's prize-linked savings on the PoolTogether protocol. You don't buy tickets and you keep your principal. Check your local laws; not available where prohibited.</p></div>
@@ -150,8 +156,12 @@
 <script>
   // === CONFIG: set after deploying the vault via https://factory.cabana.fi ===
   const CHAIN_ID = 8453;               // Base
-  const VAULT_ADDRESS = "";            // e.g. "0xabc..." — leave empty until deployed
+  const VAULT_ADDRESS = "";            // Windfall vault — leave empty until deployed (see FOUNDER_SETUP.md)
+  const VAULT_YIELD_SOURCE = "Aave v3"; // yield source of the Windfall vault once deployed
   const CABANA_APP = "https://app.cabana.fi";
+  // Fallback until then: PoolTogether's official Prize USDC vault on Base (0% fee, lends to Moonwell)
+  const FALLBACK_VAULT = "0x7f5C2b379b88499aC2B997Db583f8079503f25b9";
+  const FALLBACK_YIELD_SOURCE = "Moonwell";
   // ==========================================================================
 
   document.getElementById('yr').textContent = new Date().getFullYear();
@@ -163,15 +173,13 @@
 
   const link = document.getElementById('depositLink');
   const note = document.getElementById('vaultNote');
-  if (VAULT_ADDRESS) {
-    link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${VAULT_ADDRESS}`;
-    note.textContent = `Vault: ${VAULT_ADDRESS} on Base. Verify the address matches before depositing.`;
-  } else {
-    // PoolTogether's official Prize USDC vault on Base, until the Windfall vault is deployed
-    const FALLBACK = "0x7f5C2b379b88499aC2B997Db583f8079503f25b9";
-    link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${FALLBACK}`;
-    note.textContent = `Windfall vault is being deployed. Until then this opens PoolTogether's official Prize USDC vault on Base (${FALLBACK}) — same mechanics, no Windfall fee.`;
-  }
+  const activeVault = VAULT_ADDRESS || FALLBACK_VAULT;
+  const activeSrc = VAULT_ADDRESS ? VAULT_YIELD_SOURCE : FALLBACK_YIELD_SOURCE;
+  link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${activeVault}`;
+  document.querySelectorAll('.yieldSrc').forEach(el => el.textContent = activeSrc);
+  note.textContent = VAULT_ADDRESS
+    ? `Windfall vault: ${VAULT_ADDRESS} on Base (yield via ${VAULT_YIELD_SOURCE}). Verify the address in the URL matches before depositing.`
+    : `Windfall's own vault is being deployed. Until then this opens PoolTogether's official Prize USDC vault on Base — ${FALLBACK_VAULT} — same mechanics, yield via ${FALLBACK_YIELD_SOURCE}, no Windfall fee. Verify the address in the URL matches.`;
 
   // odds calculator
   const dep = document.getElementById('dep'), tvl = document.getElementById('tvl');
