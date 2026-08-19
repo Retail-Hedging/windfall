@@ -32,7 +32,7 @@ jobs:
       - name: Assemble site
         run: |
           mkdir -p _site/app
-          cp index.html README.md FOUNDER_SETUP.md _site/
+          cp index.html about.html site.css favicon.svg README.md FOUNDER_SETUP.md _site/
           cp -r app/dist/* _site/app/
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v3

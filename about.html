@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Windfall works</title>
+<meta name="description" content="Exactly how Windfall works: where your money goes, how prizes are funded and drawn, what Windfall earns, who holds what, and the risks.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+<style>
+  .toc{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;margin-top:18px}
+  .toc a{color:var(--ink-2);text-decoration:none}
+  .toc a:hover{color:var(--ink)}
+  .prose{max-width:720px}
+  .prose p+p{margin-top:12px}
+  .prose ul{margin:10px 0 0 18px;color:var(--ink-2)}
+  .prose li+li{margin-top:6px}
+  .diagram text{font-family:Inter,system-ui,sans-serif;font-size:12px;fill:var(--ink)}
+  .diagram .m{fill:var(--muted);font-size:11px}
+  .diagram .box{fill:var(--bg);stroke:var(--ink);stroke-width:1.2}
+  .diagram .soft{fill:var(--bg-2);stroke:var(--line)}
+  .diagram .arrow{stroke:var(--ink);stroke-width:1.2;fill:none;marker-end:url(#ah)}
+  .diagram .dash{stroke-dasharray:4 3;stroke:var(--muted)}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="rh-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+    <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/>
+  </symbol>
+</svg>
+<div class="wrap">
+  <header class="hdr">
+    <a class="brand" href="./"><svg class="mark"><use href="#rh-cube"/></svg>Windfall<small>by Retail Hedging</small></a>
+    <nav class="nav">
+      <a href="about.html" class="on">How it works</a>
+      <a href="app/#/stats">Vault stats</a>
+      <a class="cta" href="app/">Open account</a>
+    </nav>
+  </header>
+
+  <section class="hero" style="padding-bottom:40px">
+    <div class="eyebrow">How it works</div>
+    <h1 style="margin-top:12px">Exactly what happens to your money.</h1>
+    <p class="lede">Windfall is a prize-linked savings account built on public blockchain infrastructure. This page explains the whole operation — no marketing, no hand-waving.</p>
+    <nav class="toc">
+      <a href="#idea">The idea</a><a href="#flow">Where the money goes</a><a href="#prizes">How prizes work</a><a href="#odds">Your odds</a><a href="#fees">What Windfall earns</a><a href="#custody">Who holds what</a><a href="#risks">Risks</a><a href="#contracts">Contracts</a><a href="#faq">FAQ</a>
+    </nav>
+  </section>
+
+  <section id="idea" class="prose">
+    <h2>The idea</h2>
+    <p>A normal savings account pays everyone a small, certain amount of interest. A prize-linked savings account takes that same pot of interest and, instead of dividing it evenly, pays it out as prizes to randomly selected savers. Everyone keeps their principal; the interest becomes the jackpot. Britain has run this at national scale since 1956 (Premium Bonds); US credit unions run it as "Save to Win."</p>
+    <p>Windfall does the same thing with US-dollar stablecoins (USDC) on the Base blockchain, using an open protocol called PoolTogether that has run prize savings on-chain since 2019. Because the machinery is public and automated, Windfall can offer it without being a bank: we never take custody of your money and we don't decide who wins.</p>
+  </section>
+
+  <section id="flow" class="prose">
+    <h2>Where the money goes</h2>
+    <svg class="diagram" viewBox="0 0 820 300" role="img" aria-label="Money flow: your wallet to the Windfall vault to Aave; interest to the prize pool; prizes back to winners' wallets">
+      <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5 0 10z" fill="currentColor" style="fill:var(--ink)"/></marker></defs>
+      <!-- row 1: principal -->
+      <rect class="box" x="10" y="40" width="150" height="56" rx="6"/><text x="85" y="63" text-anchor="middle">Your wallet</text><text class="m" x="85" y="80" text-anchor="middle">USDC · you hold the keys</text>
+      <path class="arrow" d="M160 68 H240"/><text class="m" x="200" y="60" text-anchor="middle">deposit</text>
+      <rect class="box" x="240" y="40" width="170" height="56" rx="6"/><text x="325" y="63" text-anchor="middle">Windfall vault</text><text class="m" x="325" y="80" text-anchor="middle">PoolTogether prize vault (contract)</text>
+      <path class="arrow" d="M410 68 H490"/><text class="m" x="450" y="60" text-anchor="middle">lends</text>
+      <rect class="box" x="490" y="40" width="150" height="56" rx="6"/><text x="565" y="63" text-anchor="middle">Aave v3</text><text class="m" x="565" y="80" text-anchor="middle">USDC lending market</text>
+      <path class="arrow dash" d="M240 84 H180 V96" style="marker-end:none"/><text class="m" x="60" y="112">← withdraw anytime: vault redeems from Aave, sends USDC back</text>
+      <!-- row 2: interest -->
+      <path class="arrow" d="M565 96 V150 H420"/><text class="m" x="600" y="128">interest (USDC)</text>
+      <rect class="soft" x="250" y="132" width="170" height="40" rx="6"/><text x="335" y="156" text-anchor="middle">Interest accrues in vault</text>
+      <path class="arrow" d="M335 172 V205"/><text class="m" x="345" y="192">10% held back as Windfall's fee</text>
+      <rect class="box" x="220" y="205" width="230" height="40" rx="6"/><text x="335" y="229" text-anchor="middle">90% swapped to ETH → Prize pool</text>
+      <path class="arrow" d="M450 225 H520"/><text class="m" x="485" y="217" text-anchor="middle">daily draw</text>
+      <rect class="box" x="520" y="205" width="120" height="40" rx="6"/><text x="580" y="229" text-anchor="middle">Winners' wallets</text>
+      <text class="m" x="10" y="280">Solid boxes are on-chain contracts or wallets. Nothing in this diagram is held by Retail Hedging except the 10% fee, which is credited to our wallet.</text>
+    </svg>
+    <ol class="steps">
+      <li><div><b>You deposit USDC into the Windfall vault.</b>The vault is a PoolTogether V5 "prize vault" smart contract. In exchange for your USDC it issues you vault shares (wfUSDC), which are your receipt and are redeemable 1:1 for USDC at any time. Windfall never touches the USDC; the transaction goes from your wallet to the contract.</div></li>
+      <li><div><b>The vault lends the USDC on Aave.</b>Immediately and automatically, the vault supplies the USDC to Aave v3 on Base — a lending market with several billion dollars in deposits and a track record since 2020 — through Aave's own ERC-4626 wrapper. Borrowers pay interest; that interest accrues to the vault.</div></li>
+      <li><div><b>Interest is converted into prize contributions.</b>The vault does not pay you interest. Instead, its accumulated yield is sold to independent bots (through a "liquidation pair") for ETH, and that ETH is contributed to the shared PoolTogether prize pool on Base. This happens continuously and needs no action from us or you.</div></li>
+      <li><div><b>The prize pool runs a draw every day.</b>Using verifiable on-chain randomness, the protocol selects winners across several prize tiers, from a large grand prize down to many small daily prizes. Your chance of winning is proportional to your balance and to how much our vault has contributed relative to other vaults in the pool. Prizes are paid in ETH directly to winners' wallets by claimer bots; nobody has to "collect."</div></li>
+      <li><div><b>You withdraw whenever you want.</b>Redeeming your shares makes the vault pull your USDC back out of Aave and send it to your wallet in the same transaction. There is no notice period.</div></li>
+    </ol>
+  </section>
+
+  <section id="prizes" class="prose">
+    <h2>How prizes work</h2>
+    <p>The Base prize pool is shared by every PoolTogether vault on Base, so the jackpot is funded by all of them together, not just Windfall. Prizes are arranged in tiers: tier 0 is the grand prize (a single prize, awarded roughly every few months), and each higher tier has four times as many prizes, each smaller and awarded more often; the last tiers pay out every day. The exact sizes move with the pool and with the price of ETH; the live figures are on the <a href="app/#/stats">Vault stats</a> page.</p>
+    <p>Prizes are denominated in ETH because that is the prize pool's currency on Base. Your deposit stays in USDC throughout — only the interest passes through ETH.</p>
+  </section>
+
+  <section id="odds" class="prose">
+    <h2>Your odds</h2>
+    <p>Think of every dollar in your balance as one entry in every daily draw, for as long as it stays deposited. Two things then set your chance of a given prize:</p>
+    <ul>
+      <li><b>Your share of the Windfall vault</b> — your balance divided by everyone's balance in the vault (shown in your account).</li>
+      <li><b>The vault's share of the prize pool</b> — how much interest our vault has contributed compared with all other vaults, over the recent draw window.</li>
+    </ul>
+    <p>Multiply those by the tier's frequency and number of prizes and you get your odds per draw. Your account page does this arithmetic for you and shows "chance of winning something in the next draw" and the grand-prize odds. Because the interest that funds prizes is roughly the same interest a savings account would have paid you, your expected value over time is about the same as earning ~90% of Aave's USDC rate — just paid out lumpily and randomly rather than evenly.</p>
+    <p class="note">New vaults: for the first day or two after a vault's first deposits, its interest hasn't been converted into prize contributions yet, so live odds read as zero. During that period your account shows <em>projected</em> odds (clearly labelled) based on the vault's expected yield.</p>
+  </section>
+
+  <section id="fees" class="prose">
+    <h2>What Windfall earns</h2>
+    <p>Windfall's only revenue is a <b>10% share of the interest</b> the vault earns. It is deducted from the yield before the yield goes to the prize pool; it is never taken from your deposit and there is no fee on deposits or withdrawals. If the vault earns $1,000 of interest in a year, $100 goes to Windfall and $900 becomes prizes.</p>
+    <p>The fee percentage is written into the vault contract and is public. It can be changed only by the vault owner (Retail Hedging), and any change is a public transaction visible on Basescan. The fee is credited to a Retail Hedging wallet as vault shares and is shown live on the <a href="app/#/stats">Vault stats</a> page.</p>
+  </section>
+
+  <section id="custody" class="prose">
+    <h2>Who holds what</h2>
+    <dl class="facts">
+      <dt>Your deposit</dt><dd>Held by the vault contract, which holds it inside Aave. Only you (your wallet) can withdraw it. Retail Hedging cannot move, freeze or access it.</dd>
+      <dt>Your wallet</dt><dd>A Coinbase Smart Wallet secured by a passkey on your device (or any wallet you choose to connect). Coinbase provides the software; you hold the keys. Windfall never sees a seed phrase or password.</dd>
+      <dt>Prize draws</dt><dd>Run by the PoolTogether protocol using Chainlink randomness. Nobody at Windfall, Coinbase or PoolTogether picks winners.</dd>
+      <dt>The website</dt><dd>Static files hosted on GitHub Pages, open source. It is a viewer and a button-presser for the contracts; if it went offline you could still withdraw through any other PoolTogether interface (for example <a href="https://app.cabana.fi/vault/8453/0x0ee63210597564db524a7b1f7502781bf19c832f" target="_blank" rel="noopener">Cabana</a>) or directly on Basescan.</dd>
+      <dt>Retail Hedging</dt><dd>Owns the vault configuration (fee percentage, fee recipient, which yield source and prize pool it uses) and receives the 10% fee. Owning the configuration does not give access to depositors' funds.</dd>
+    </dl>
+  </section>
+
+  <section id="risks" class="prose">
+    <h2>Risks — read this</h2>
+    <p>Windfall is not a bank and your deposit is not insured by the FDIC, NCUA or anyone else. The relevant risks are:</p>
+    <ul>
+      <li><b>Smart-contract risk.</b> A bug or exploit in the PoolTogether vault, the Aave market, the ERC-4626 wrapper, or the liquidation pair could result in partial or total loss. These contracts are audited and widely used, but no audit is a guarantee.</li>
+      <li><b>Stablecoin risk.</b> USDC is issued by Circle and backed by cash and short-term US Treasuries. If USDC failed to hold its dollar value, your balance would fall with it.</li>
+      <li><b>Lending-market risk.</b> Aave's USDC market could suffer bad debt or, in extreme conditions, temporarily lack liquidity for withdrawals until borrowers repay or rates adjust.</li>
+      <li><b>Network risk.</b> Base is an Ethereum layer-2 operated by Coinbase. Sequencer downtime could delay transactions; a bridge failure could affect assets on the network.</li>
+      <li><b>Wallet risk.</b> Lose access to your passkey (and any backup) and you lose access to your funds. Windfall cannot reset it.</li>
+      <li><b>Prize variance.</b> You may go a long time without winning anything. That is the nature of a lottery-style payout; on average the pool pays out roughly what a savings rate would, but any individual outcome can be nothing.</li>
+      <li><b>Regulatory risk.</b> The legal treatment of prize-linked crypto savings is unsettled in some jurisdictions. Windfall may become unavailable in yours; your funds remain withdrawable regardless, because they are in your control.</li>
+    </ul>
+    <p>Only deposit what you can afford to lose.</p>
+  </section>
+
+  <section id="contracts" class="prose">
+    <h2>Contracts</h2>
+    <p>Everything is verifiable on Basescan.</p>
+    <table class="t" style="margin-top:12px">
+      <tr><th>Windfall vault (wfUSDC)</th><td class="mono"><a href="https://basescan.org/address/0x0ee63210597564db524a7b1f7502781bf19c832f" target="_blank" rel="noopener">0x0ee63210597564db524a7b1f7502781bf19c832f</a></td></tr>
+      <tr><th>Yield source (Aave waBasUSDC)</th><td class="mono"><a href="https://basescan.org/address/0xC768c589647798a6EE01A91FdE98EF2ed046DBD6" target="_blank" rel="noopener">0xC768c589647798a6EE01A91FdE98EF2ed046DBD6</a></td></tr>
+      <tr><th>Liquidation pair</th><td class="mono"><a href="https://basescan.org/address/0xbd082d5ccb7927bdeb1b9bd1a521cf22ab6bd5f0" target="_blank" rel="noopener">0xbd082d5ccb7927bdeb1b9bd1a521cf22ab6bd5f0</a></td></tr>
+      <tr><th>PoolTogether prize pool (Base)</th><td class="mono"><a href="https://basescan.org/address/0x45b2010d8A4f08b53c9fa7544C51dFd9733732cb" target="_blank" rel="noopener">0x45b2010d8A4f08b53c9fa7544C51dFd9733732cb</a></td></tr>
+      <tr><th>USDC (Base)</th><td class="mono"><a href="https://basescan.org/address/0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" target="_blank" rel="noopener">0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913</a></td></tr>
+      <tr><th>Website source</th><td><a href="https://github.com/Retail-Hedging/windfall" target="_blank" rel="noopener">github.com/Retail-Hedging/windfall</a></td></tr>
+    </table>
+  </section>
+
+  <section id="faq" class="prose">
+    <h2>Questions</h2>
+    <h3>Do I earn interest?</h3><p>No. All interest (less the 10% fee) becomes prizes. If you would rather have the certain 4% than a chance at more, a plain Aave deposit or a savings account is the better product for you.</p>
+    <h3 style="margin-top:18px">Is there a minimum or a lock-up?</h3><p>Deposit from $1. No lock-up; withdraw any time. Base transaction fees are a fraction of a cent.</p>
+    <h3 style="margin-top:18px">What do I win in?</h3><p>ETH, sent to your wallet automatically. Your account page shows the dollar value. You can convert it to USDC or cash out via Coinbase.</p>
+    <h3 style="margin-top:18px">Is this gambling?</h3><p>You never stake your principal — you can't lose your deposit to the draw. What you forgo is the interest, which is pooled into prizes. That structure is what regulators call prize-linked savings. Even so, check the rules where you live; Windfall isn't offered where it's prohibited.</p>
+    <h3 style="margin-top:18px">What if Windfall disappears?</h3><p>Your money is in the vault contract, not with us. You can withdraw through Cabana or Basescan with the same wallet. The vault and prize pool keep running without a website.</p>
+    <h3 style="margin-top:18px">Who is behind it?</h3><p>Retail Hedging, a small US software company. Windfall is in a limited early release while we test with a small group.</p>
+  </section>
+
+  <footer>
+    <div class="links">
+      <a href="./">Home</a><a href="app/">Open account</a><a href="app/#/stats">Vault stats</a><a href="https://github.com/Retail-Hedging/windfall" target="_blank" rel="noopener">Source</a>
+    </div>
+    <p>Windfall is operated by Retail Hedging. Non-custodial interface to a PoolTogether V5 prize vault on Base. Not a bank; not FDIC or NCUA insured; not investment advice; no guarantee of returns or principal. Not available where prohibited by law.</p>
+    <p>© <span id="yr"></span> Retail Hedging.</p>
+  </footer>
+</div>
+<script>document.getElementById('yr').textContent=new Date().getFullYear()</script>
+</body>
+</html>
