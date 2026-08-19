@@ -207,6 +207,69 @@ export function useVaultStats() {
   }
 }
 
+/** Per-depositor ledger from Deposit/Withdraw events (owner view). Enabled only when asked. */
+export interface LedgerRow { owner: Address; deposited: number; withdrawn: number; deposits: number; withdrawals: number; firstTs?: number; lastTs?: number; lastBlock: number }
+export function useDepositorLedger(enabled: boolean) {
+  const client = usePublicClient()
+  return useQuery({
+    queryKey: ['depositorLedger'],
+    enabled,
+    refetchInterval: 60_000,
+    queryFn: async (): Promise<LedgerRow[]> => {
+      const depT = encodeEventTopics({ abi: vaultAbi, eventName: 'Deposit' })[0]!
+      const wdT = encodeEventTopics({ abi: vaultAbi, eventName: 'Withdraw' })[0]!
+      let deps: RawLog[], wds: RawLog[]
+      try {
+        ;[deps, wds] = await Promise.all([
+          fetchLogsBlockscout({ address: ADDRESSES.vault, topic0: depT }),
+          fetchLogsBlockscout({ address: ADDRESSES.vault, topic0: wdT })
+        ])
+      } catch {
+        if (!client) return []
+        const latest = await client.getBlockNumber()
+        const fromBlock = latest - 9_000n > VAULT_DEPLOY_BLOCK ? latest - 9_000n : VAULT_DEPLOY_BLOCK
+        const toRaw = (ls: any[]): RawLog[] => ls.map((l) => ({ data: l.data, topics: l.topics, transactionHash: l.transactionHash, blockNumber: l.blockNumber }))
+        ;[deps, wds] = await Promise.all([
+          client.getLogs({ address: ADDRESSES.vault, event: getAbiItem({ abi: vaultAbi, name: 'Deposit' }), fromBlock, toBlock: 'latest' }).then(toRaw),
+          client.getLogs({ address: ADDRESSES.vault, event: getAbiItem({ abi: vaultAbi, name: 'Withdraw' }), fromBlock, toBlock: 'latest' }).then(toRaw)
+        ])
+      }
+      const map = new Map<string, LedgerRow>()
+      const row = (o: Address) => { const k = o.toLowerCase(); if (!map.has(k)) map.set(k, { owner: o, deposited: 0, withdrawn: 0, deposits: 0, withdrawals: 0, lastBlock: 0 }); return map.get(k)! }
+      for (const l of deps) {
+        try {
+          const ev = decodeEventLog({ abi: vaultAbi, eventName: 'Deposit', data: l.data, topics: l.topics as [Hex, ...Hex[]] })
+          const r = row(ev.args.owner); r.deposited += Number(formatUnits(ev.args.assets, USDC_DECIMALS)); r.deposits++
+          const ts = l.timeStamp ? Number(l.timeStamp) : undefined; const bn = Number(l.blockNumber)
+          if (ts) { r.firstTs = r.firstTs ? Math.min(r.firstTs, ts) : ts; r.lastTs = r.lastTs ? Math.max(r.lastTs, ts) : ts }
+          r.lastBlock = Math.max(r.lastBlock, bn)
+        } catch {}
+      }
+      for (const l of wds) {
+        try {
+          const ev = decodeEventLog({ abi: vaultAbi, eventName: 'Withdraw', data: l.data, topics: l.topics as [Hex, ...Hex[]] })
+          const r = row(ev.args.owner); r.withdrawn += Number(formatUnits(ev.args.assets, USDC_DECIMALS)); r.withdrawals++
+          const ts = l.timeStamp ? Number(l.timeStamp) : undefined; const bn = Number(l.blockNumber)
+          if (ts) r.lastTs = r.lastTs ? Math.max(r.lastTs, ts) : ts
+          r.lastBlock = Math.max(r.lastBlock, bn)
+        } catch {}
+      }
+      return Array.from(map.values())
+    }
+  })
+}
+
+/** Live balances for a list of depositors */
+export function useBalancesFor(owners: Address[]) {
+  const q = useReadContracts({
+    contracts: owners.map((o) => ({ address: ADDRESSES.vault, abi: vaultAbi, functionName: 'maxWithdraw', args: [o] } as const)),
+    query: { enabled: owners.length > 0, refetchInterval: 30_000 }
+  })
+  const out: Record<string, number> = {}
+  owners.forEach((o, i) => { const v = q.data?.[i]?.result as bigint | undefined; out[o.toLowerCase()] = v !== undefined ? Number(formatUnits(v, USDC_DECIMALS)) : NaN })
+  return { balances: out, isLoading: q.isLoading }
+}
+
 /** Unique depositors + deposit count from vault Deposit events (Blockscout; best-effort) */
 export function useDepositorStats() {
   return useQuery({
