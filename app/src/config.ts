@@ -6,8 +6,14 @@ export const ADDRESSES = {
   vault: '0x0ee63210597564db524a7b1f7502781bf19c832f',
   usdc: '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913',
   prizePool: '0x45b2010d8A4f08b53c9fa7544C51dFd9733732cb',
-  weth: '0x4200000000000000000000000000000000000006'
+  weth: '0x4200000000000000000000000000000000000006',
+  aavePool: '0xA238Dd80C259a72e81d7e4664a9801593F98d1c5', // Aave v3 Pool (Base)
+  yieldVault: '0xC768c589647798a6EE01A91FdE98EF2ed046DBD6' // Wrapped Aave Base USDC (ERC-4626)
 } as const
+
+export const aavePoolAbi = parseAbi([
+  'function getReserveData(address asset) view returns ((uint256 configuration, uint128 liquidityIndex, uint128 currentLiquidityRate, uint128 variableBorrowIndex, uint128 currentVariableBorrowRate, uint128 currentStableBorrowRate, uint40 lastUpdateTimestamp, uint16 id, address aTokenAddress, address stableDebtTokenAddress, address variableDebtTokenAddress, address interestRateStrategyAddress, uint128 accruedToTreasury, uint128 unbacked, uint128 isolationModeTotalDebt))'
+])
 
 export const CABANA_VAULT_URL = `https://app.cabana.fi/vault/${CHAIN_ID}/${ADDRESSES.vault}`
 export const BASESCAN = 'https://basescan.org'
@@ -31,7 +37,16 @@ export const vaultAbi = parseAbi([
   'function withdraw(uint256 assets, address receiver, address owner) returns (uint256)',
   'function redeem(uint256 shares, address receiver, address owner) returns (uint256)',
   'function yieldFeePercentage() view returns (uint32)',
+  'function yieldFeeRecipient() view returns (address)',
+  'function yieldFeeBalance() view returns (uint256)',
+  'function availableYieldBalance() view returns (uint256)',
+  'function totalYieldBalance() view returns (uint256)',
+  'function currentYieldBuffer() view returns (uint256)',
+  'function owner() view returns (address)',
   'function liquidationPair() view returns (address)',
+  'function claimYieldFeeShares(uint256 shares)',
+  'function setYieldFeeRecipient(address recipient)',
+  'function setYieldFeePercentage(uint32 pct)',
   'event Deposit(address indexed sender, address indexed owner, uint256 assets, uint256 shares)',
   'event Withdraw(address indexed sender, address indexed receiver, address indexed owner, uint256 assets, uint256 shares)'
 ])
@@ -46,5 +61,7 @@ export const prizePoolAbi = parseAbi([
   'function getTierPrizeCount(uint8 tier) pure returns (uint32)',
   'function getTierOdds(uint8 tier, uint8 numTiers) view returns (int256)',
   'function getVaultPortion(address vault, uint24 startDrawIdInclusive, uint24 endDrawIdInclusive) view returns (int256)',
+  'function getContributedBetween(address vault, uint24 startDrawIdInclusive, uint24 endDrawIdInclusive) view returns (uint256)',
+  'function getTotalContributedBetween(uint24 startDrawIdInclusive, uint24 endDrawIdInclusive) view returns (uint256)',
   'event ClaimedPrize(address indexed vault, address indexed winner, address indexed recipient, uint24 drawId, uint8 tier, uint32 prizeIndex, uint152 payout, uint96 claimReward, address claimRewardRecipient)'
 ])
