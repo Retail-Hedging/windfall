@@ -76,15 +76,15 @@
   </section>
 
   <section id="waitlist">
-    <h2>Prefer to be told when it's ready for everyone?</h2>
-    <p style="max-width:560px">Windfall is in a limited early release. Leave an email and we'll notify you at general launch. Nothing else.</p>
+    <h2>Updates</h2>
+    <p style="max-width:560px">Windfall is live and open to anyone. If you'd like occasional updates — new features, prize results, changes to fees — leave an email. Nothing else.</p>
     <form class="wait" style="margin-top:16px" action="https://formsubmit.co/pfelizarta@retailhedging.com" method="POST">
       <input type="hidden" name="_subject" value="Windfall waitlist signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_next" id="nextUrl" value="">
       <input type="text" name="_honey" style="display:none">
       <input type="email" name="email" placeholder="you@email.com" required>
-      <button class="btn primary" type="submit">Notify me</button>
+      <button class="btn primary" type="submit">Subscribe</button>
     </form>
   </section>
 
@@ -106,7 +106,7 @@
   if (new URLSearchParams(location.search).get('joined')) {
     var s = document.getElementById('waitlist');
     s.querySelector('h2').textContent = "You're on the list.";
-    s.querySelector('p').textContent = "We'll email you once at general launch.";
+    s.querySelector('p').textContent = "We'll email you occasionally with updates.";
     s.querySelector('form').remove();
   }
 </script>
