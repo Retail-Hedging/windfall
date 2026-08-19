@@ -61,9 +61,9 @@ export function App() {
 
 function CubeMark() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
-      <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z" />
-      <path d="M3.5 7 12 11.5 20.5 7M12 11.5v10" />
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <path fill="currentColor" d="M50 8 88 30v40L50 92 12 70V30z" />
+      <path fill="none" style={{ stroke: 'var(--bg)' }} strokeWidth="2" strokeLinejoin="round" d="M12 30 50 52 88 30M50 52v40" />
     </svg>
   )
 }

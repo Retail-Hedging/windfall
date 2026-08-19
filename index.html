@@ -12,8 +12,8 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="rh-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
-    <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/>
+  <symbol id="rh-cube" viewBox="0 0 100 100">
+    <path fill="currentColor" d="M50 8 88 30v40L50 92 12 70V30z"/><path fill="none" style="stroke:var(--bg)" stroke-width="2" stroke-linejoin="round" d="M12 30 50 52 88 30M50 52v40"/>
   </symbol>
 </svg>
 <div class="wrap">
@@ -76,15 +76,15 @@
   </section>
 
   <section id="waitlist">
-    <h2>Prefer to be told when it's ready for everyone?</h2>
-    <p style="max-width:560px">Windfall is in a limited early release. Leave an email and we'll notify you at general launch. Nothing else.</p>
+    <h2>Updates</h2>
+    <p style="max-width:560px">Windfall is live and open to anyone. If you'd like occasional updates — new features, prize results, changes to fees — leave an email. Nothing else.</p>
     <form class="wait" style="margin-top:16px" action="https://formsubmit.co/pfelizarta@retailhedging.com" method="POST">
       <input type="hidden" name="_subject" value="Windfall waitlist signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_next" id="nextUrl" value="">
       <input type="text" name="_honey" style="display:none">
       <input type="email" name="email" placeholder="you@email.com" required>
-      <button class="btn primary" type="submit">Notify me</button>
+      <button class="btn primary" type="submit">Subscribe</button>
     </form>
   </section>
 
@@ -106,7 +106,7 @@
   if (new URLSearchParams(location.search).get('joined')) {
     var s = document.getElementById('waitlist');
     s.querySelector('h2').textContent = "You're on the list.";
-    s.querySelector('p').textContent = "We'll email you once at general launch.";
+    s.querySelector('p').textContent = "We'll email you occasionally with updates.";
     s.querySelector('form').remove();
   }
 </script>
