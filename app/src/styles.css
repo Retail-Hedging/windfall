@@ -65,6 +65,17 @@ h2{font-size:17px;font-weight:600;letter-spacing:-.01em}
 .banner.ok{border-color:var(--pos)}
 .spinner{width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--ink);border-radius:50%;animation:spin .8s linear infinite;flex:0 0 14px;display:inline-block;vertical-align:middle}
 @keyframes spin{to{transform:rotate(360deg)}}
+.banner.won{border-color:var(--ink);background:var(--bg-2);justify-content:space-between}
+.reveal .reveal-box{display:flex;flex-direction:column;align-items:flex-start;gap:12px;padding:8px 0 4px}
+.reveal .reveal-meta{color:var(--ink-2)}
+.reveal-btn{min-width:200px}
+.reveal-btn.shaking{animation:shake .9s ease-in-out}
+@keyframes shake{0%,100%{transform:translateX(0)}15%{transform:translateX(-4px)}30%{transform:translateX(4px)}45%{transform:translateX(-3px)}60%{transform:translateX(3px)}75%{transform:translateX(-2px)}90%{transform:translateX(2px)}}
+.reveal-result{padding:8px 0 4px;animation:fadeup .5s ease-out}
+.reveal-result.won .big2{color:var(--pos)}
+@keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 20px;border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
+.counters .val{font-weight:600;font-size:17px}
 .pending-row{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px;padding:8px 0}
 .activity{width:100%;border-collapse:collapse;font-size:14px}
 .activity th{text-align:left;font-size:12px;color:var(--muted);font-weight:500;padding:6px;border-bottom:1px solid var(--line)}

@@ -168,9 +168,20 @@ function Dashboard({ address }: { address: Address }) {
   const totalWithdrawn = useMemo(() => (activity.data ?? []).filter((a) => a.kind === 'withdraw').reduce((s, a) => s + Number(a.amount), 0), [activity.data])
   const prizesWonEth = useMemo(() => (activity.data ?? []).filter((a) => a.kind === 'prize').reduce((s, a) => s + Number(a.amount), 0), [activity.data])
   const balanceUsd = Number(formatUnits(acct.withdrawable, USDC_DECIMALS))
+  const unseenPrizes = useUnseenPrizes(activity)
+  const unseenEth = unseenPrizes.unseen.reduce((s, p) => s + Number(p.amount), 0)
 
   return (
     <>
+      {unseenPrizes.unseen.length > 0 && (
+        <div className="banner won">
+          <div>
+            <b>You won {ethUsd ? fmtUsd(unseenEth * ethUsd, unseenEth * ethUsd < 10 ? 2 : 0) : `${unseenEth.toFixed(5)} ETH`}</b>
+            <div className="fine">{unseenPrizes.unseen.length} prize{unseenPrizes.unseen.length > 1 ? 's' : ''} since your last visit — paid to your wallet as ETH.</div>
+          </div>
+          <button className="link" onClick={unseenPrizes.dismiss}>Got it</button>
+        </div>
+      )}
       {tx.pending && (
         <div className="banner pending">
           <span className="spinner" />
@@ -202,6 +213,8 @@ function Dashboard({ address }: { address: Address }) {
         </div>
         {tab === 'deposit' ? <DepositForm acct={acct} tx={tx} /> : <WithdrawForm acct={acct} tx={tx} />}
       </section>
+
+      <DailyReveal prize={prize} activity={activity} balanceUsd={balanceUsd} ethUsd={ethUsd} apy={aave.apy} address={address} />
 
       <section className="card">
         <div className="sec-head">
@@ -281,6 +294,98 @@ function Dashboard({ address }: { address: Address }) {
   )
 }
 
+// ---------- Daily reveal ----------
+
+const LS_REVEALED = 'wf.revealedDraws'
+const LS_SEEN_PRIZE = 'wf.lastSeenPrizeTx'
+const readLS = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v ? (JSON.parse(v) as T) : d } catch { return d } }
+const writeLS = (k: string, v: unknown) => { try { localStorage.setItem(k, JSON.stringify(v)) } catch {} }
+
+function useUnseenPrizes(activity: ReturnType<typeof useActivity>) {
+  const [seenTx, setSeenTx] = useState<string | null>(() => readLS<string | null>(LS_SEEN_PRIZE, null))
+  const prizes = (activity.data ?? []).filter((a) => a.kind === 'prize')
+  const newestTx = prizes[0]?.txHash ?? null
+  const unseen = seenTx ? prizes.filter((p) => p.blockNumber > (prizes.find((x) => x.txHash === seenTx)?.blockNumber ?? 0)) : prizes
+  const dismiss = () => { if (newestTx) { writeLS(LS_SEEN_PRIZE, newestTx); setSeenTx(newestTx) } }
+  return { unseen, dismiss }
+}
+
+function DailyReveal({ prize, activity, balanceUsd, ethUsd, apy, address }: { prize: ReturnType<typeof usePrizeInfo>; activity: ReturnType<typeof useActivity>; balanceUsd: number; ethUsd: number; apy: number; address: Address }) {
+  const key = `${LS_REVEALED}.${address.toLowerCase()}`
+  const [revealed, setRevealed] = useState<number[]>(() => readLS<number[]>(key, []))
+  const [animating, setAnimating] = useState(false)
+  const drawId = prize.lastAwardedDrawId
+  const isRevealed = revealed.includes(drawId)
+  const nowS = Date.now() / 1000
+  const closedAt = prize.lastDrawClosedAt ?? 0
+  const finalized = closedAt > 0 && nowS - closedAt > 6 * 3600 // give bots time to award + claim
+  const wins = (activity.data ?? []).filter((a) => a.kind === 'prize' && a.drawId === drawId)
+  const wonEth = wins.reduce((s, w) => s + Number(w.amount), 0)
+  const firstDeposit = (activity.data ?? []).filter((a) => a.kind === 'deposit').slice(-1)[0]
+  const daysIn = firstDeposit?.timestamp ? Math.max(1, Math.floor((nowS - firstDeposit.timestamp) / 86400) + 1) : (balanceUsd > 0 ? 1 : 0)
+  const dailyContribution = (balanceUsd * apy) / 365 * 0.9
+  const streak = (() => {
+    // consecutive awarded draws revealed, ending at the latest revealed
+    const set = new Set(revealed); let n = 0; let d = isRevealed ? drawId : drawId - 1
+    while (set.has(d)) { n++; d-- }
+    return n
+  })()
+
+  function reveal() {
+    setAnimating(true)
+    setTimeout(() => {
+      const next = Array.from(new Set([...revealed, drawId])).slice(-400)
+      writeLS(key, next); setRevealed(next); setAnimating(false)
+    }, 900)
+  }
+
+  if (drawId === 0) return null
+
+  return (
+    <section className="card reveal">
+      <div className="sec-head">
+        <h2>Draw #{drawId}</h2>
+        <span className="pill">{closedAt ? 'closed ' + timeAgo(closedAt) : ''}{finalized ? '' : ' · results settling'}</span>
+      </div>
+      {balanceUsd <= 0 && !isRevealed ? (
+        <p className="muted">Deposit to be in tomorrow's draw. Every dollar is an entry.</p>
+      ) : !isRevealed ? (
+        <div className="reveal-box">
+          <div className="reveal-meta">You had <b>{Math.floor(balanceUsd).toLocaleString()}</b> entries in this draw{!finalized ? ' · prizes may still be on their way' : ''}.</div>
+          <button className={'btn primary reveal-btn' + (animating ? ' shaking' : '')} onClick={reveal} disabled={animating}>{animating ? 'Drawing…' : 'Reveal my result'}</button>
+        </div>
+      ) : (
+        <div className={'reveal-result' + (wonEth > 0 ? ' won' : '')}>
+          {wonEth > 0 ? (
+            <>
+              <div className="big2">You won {ethUsd ? fmtUsd(wonEth * ethUsd, wonEth * ethUsd < 10 ? 2 : 0) : `${wonEth.toFixed(5)} ETH`}</div>
+              <div className="fine">{wins.length} prize{wins.length > 1 ? 's' : ''} · {wins.map((w) => (w.tier === 0 ? 'grand prize' : `tier ${w.tier}`)).join(', ')} · paid to your wallet as ETH.</div>
+            </>
+          ) : (
+            <>
+              <div className="big2">No prize this draw</div>
+              <div className="fine">{finalized ? 'Your entries roll into the next draw automatically.' : 'Results are still settling for a few hours — a prize can still land. Your entries roll into the next draw automatically.'}</div>
+            </>
+          )}
+        </div>
+      )}
+      <div className="counters">
+        <div><div className="label">Days in the draw</div><div className="val">{daysIn}</div></div>
+        <div><div className="label">Reveal streak</div><div className="val">{streak}</div></div>
+        <div><div className="label">Your money adds to the pot</div><div className="val">{fmtUsd(dailyContribution, dailyContribution < 0.1 ? 3 : 2)}<span className="fine"> / day</span></div></div>
+        <div><div className="label">Next draw</div><div className="val"><NextDraw closesAt={prize.drawClosesAt} plain /></div></div>
+      </div>
+    </section>
+  )
+}
+
+function timeAgo(ts: number) {
+  const s = Math.max(0, Math.floor(Date.now() / 1000 - ts))
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`
+  return `${Math.floor(s / 86400)}d ago`
+}
+
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
     <div className="stat">
@@ -291,15 +396,16 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   )
 }
 
-function NextDraw({ closesAt }: { closesAt?: number }) {
+function NextDraw({ closesAt, plain }: { closesAt?: number; plain?: boolean }) {
   const [now, setNow] = useState(Date.now() / 1000)
   useEffect(() => {
     const id = setInterval(() => setNow(Date.now() / 1000), 1000)
     return () => clearInterval(id)
   }, [])
-  if (!closesAt) return null
+  if (!closesAt) return plain ? <>…</> : null
   const s = Math.max(0, Math.floor(closesAt - now))
   const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60
+  if (plain) return <>{h}h {m}m {sec}s</>
   return <div className="pill">Next draw in {h}h {m}m {sec}s</div>
 }
 

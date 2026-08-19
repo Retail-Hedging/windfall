@@ -81,6 +81,13 @@ export function usePrizeInfo(shareOfVault: number, opts?: { vaultTotalAssets?: b
     args: [openDrawId],
     query: { enabled: openDrawId > 0 }
   })
+  const lastClosedAt = useReadContract({
+    address: ADDRESSES.prizePool,
+    abi: prizePoolAbi,
+    functionName: 'drawClosesAt',
+    args: [lastAwardedDrawId],
+    query: { enabled: lastAwardedDrawId > 0 }
+  })
 
   // Vault's share of the whole prize pool over the last 7 draws (approximation of the accrual window)
   const startDraw = Math.max(1, lastAwardedDrawId - 6)
@@ -140,6 +147,7 @@ export function usePrizeInfo(shareOfVault: number, opts?: { vaultTotalAssets?: b
     lastAwardedDrawId,
     drawPeriodSeconds,
     drawClosesAt: closesAt.data ? Number(closesAt.data) : undefined,
+    lastDrawClosedAt: lastClosedAt.data ? Number(lastClosedAt.data) : undefined,
     vaultPortion,
     actualPortion,
     projectedPortion,
@@ -230,6 +238,8 @@ export interface ActivityItem {
   txHash: Hex
   blockNumber: number
   timestamp?: number
+  drawId?: number // prizes only
+  tier?: number // prizes only
 }
 
 type RawLog = { data: Hex; topics: Hex[]; transactionHash: Hex; blockNumber: Hex | bigint; timeStamp?: Hex }
@@ -296,7 +306,7 @@ export function useActivity(address?: Address) {
       for (const l of przs) {
         try {
           const ev = decodeEventLog({ abi: prizePoolAbi, eventName: 'ClaimedPrize', data: l.data, topics: l.topics as [Hex, ...Hex[]] })
-          items.push({ kind: 'prize', amount: formatUnits(ev.args.payout, 18), unit: 'ETH', txHash: l.transactionHash, blockNumber: Number(l.blockNumber), timestamp: l.timeStamp ? Number(l.timeStamp) : undefined })
+          items.push({ kind: 'prize', amount: formatUnits(ev.args.payout, 18), unit: 'ETH', txHash: l.transactionHash, blockNumber: Number(l.blockNumber), timestamp: l.timeStamp ? Number(l.timeStamp) : undefined, drawId: Number(ev.args.drawId), tier: Number(ev.args.tier) })
         } catch {}
       }
       return items.sort((a, b) => b.blockNumber - a.blockNumber)
