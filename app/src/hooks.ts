@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { decodeEventLog, encodeEventTopics, formatUnits, getAbiItem, type Address, type Hex } from 'viem'
 import { useAccount, usePublicClient, useReadContract, useReadContracts } from 'wagmi'
-import { ADDRESSES, CHAIN_ID, USDC_DECIMALS, erc20Abi, prizePoolAbi, vaultAbi } from './config'
+import { ADDRESSES, CHAIN_ID, USDC_DECIMALS, aavePoolAbi, erc20Abi, prizePoolAbi, vaultAbi } from './config'
 
 export const VAULT_DEPLOY_BLOCK = 50154354n
 const BLOCKSCOUT = 'https://base.blockscout.com/api'
@@ -45,7 +45,21 @@ export interface TierInfo {
   perDrawChance: number // your chance of winning ≥1 prize of this tier in a draw
 }
 
-export function usePrizeInfo(shareOfVault: number) {
+/** Aave v3 USDC supply APY on Base (from currentLiquidityRate, ray = 1e27) */
+export function useAaveApy() {
+  const q = useReadContract({
+    address: ADDRESSES.aavePool,
+    abi: aavePoolAbi,
+    functionName: 'getReserveData',
+    args: [ADDRESSES.usdc],
+    query: { refetchInterval: 120_000 }
+  })
+  const rate = q.data ? Number(q.data.currentLiquidityRate) / 1e27 : 0 // APR
+  const apy = rate > 0 ? Math.pow(1 + rate / 31_536_000, 31_536_000) - 1 : 0
+  return { apr: rate, apy, isLoading: q.isLoading }
+}
+
+export function usePrizeInfo(shareOfVault: number, opts?: { vaultTotalAssets?: bigint; apy?: number; ethUsd?: number }) {
   const base = useReadContracts({
     contracts: [
       { address: ADDRESSES.prizePool, abi: prizePoolAbi, functionName: 'numberOfTiers' },
@@ -70,14 +84,31 @@ export function usePrizeInfo(shareOfVault: number) {
 
   // Vault's share of the whole prize pool over the last 7 draws (approximation of the accrual window)
   const startDraw = Math.max(1, lastAwardedDrawId - 6)
-  const portion = useReadContract({
-    address: ADDRESSES.prizePool,
-    abi: prizePoolAbi,
-    functionName: 'getVaultPortion',
-    args: [ADDRESSES.vault, startDraw, Math.max(1, lastAwardedDrawId)],
-    query: { enabled: lastAwardedDrawId > 0 }
+  const endDraw = Math.max(1, lastAwardedDrawId)
+  const contrib = useReadContracts({
+    contracts: [
+      { address: ADDRESSES.prizePool, abi: prizePoolAbi, functionName: 'getVaultPortion', args: [ADDRESSES.vault, startDraw, endDraw] },
+      { address: ADDRESSES.prizePool, abi: prizePoolAbi, functionName: 'getContributedBetween', args: [ADDRESSES.vault, startDraw, endDraw] },
+      { address: ADDRESSES.prizePool, abi: prizePoolAbi, functionName: 'getTotalContributedBetween', args: [startDraw, endDraw] }
+    ],
+    query: { enabled: lastAwardedDrawId > 0, refetchInterval: 60_000 }
   })
-  const vaultPortion = portion.data !== undefined ? Number(portion.data) / SD59X18 : 0
+  const actualPortion = contrib.data?.[0]?.result !== undefined ? Number(contrib.data[0].result as bigint) / SD59X18 : 0
+  const vaultContribWei = (contrib.data?.[1]?.result as bigint | undefined) ?? 0n
+  const totalContribWei = (contrib.data?.[2]?.result as bigint | undefined) ?? 0n
+  const drawsInWindow = endDraw - startDraw + 1
+
+  // Projected portion for a vault whose yield hasn't been liquidated into the pool yet:
+  // our expected daily contribution (TVL × APY / 365 × 90%) vs the pool's actual daily contributions.
+  let projectedPortion = 0
+  const tvlUsd = opts?.vaultTotalAssets ? Number(formatUnits(opts.vaultTotalAssets, USDC_DECIMALS)) : 0
+  if (opts?.apy && opts?.ethUsd && tvlUsd > 0 && totalContribWei > 0n) {
+    const ourDailyUsd = (tvlUsd * opts.apy) / 365 * 0.9
+    const poolDailyUsd = (Number(formatUnits(totalContribWei, 18)) / drawsInWindow) * opts.ethUsd
+    projectedPortion = ourDailyUsd / (poolDailyUsd + ourDailyUsd)
+  }
+  const isProjected = actualPortion === 0 && projectedPortion > 0
+  const vaultPortion = actualPortion > 0 ? actualPortion : projectedPortion
 
   const tierIdx = Array.from({ length: numTiers }, (_, i) => i)
   const tiers = useReadContracts({
@@ -100,6 +131,9 @@ export function usePrizeInfo(shareOfVault: number) {
     return { tier: t, label, prizeSizeWei: size, prizeCount: count, tierOdds: odds, perDrawChance }
   })
 
+  // chance of winning at least one prize of any tier in a draw
+  const anyPrizeChance = 1 - info.reduce((acc, t) => acc * (1 - t.perDrawChance), 1)
+
   return {
     numTiers,
     openDrawId,
@@ -107,9 +141,72 @@ export function usePrizeInfo(shareOfVault: number) {
     drawPeriodSeconds,
     drawClosesAt: closesAt.data ? Number(closesAt.data) : undefined,
     vaultPortion,
+    actualPortion,
+    projectedPortion,
+    isProjected,
+    vaultContribWei,
+    totalContribWei,
+    drawsInWindow,
+    anyPrizeChance,
     tiers: info,
     isLoading: base.isLoading || tiers.isLoading
   }
+}
+
+/** Vault-level stats for the /stats page */
+export function useVaultStats() {
+  const q = useReadContracts({
+    contracts: [
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'totalAssets' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'totalSupply' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'availableYieldBalance' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'yieldFeeBalance' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'yieldFeePercentage' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'yieldFeeRecipient' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'owner' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'liquidationPair' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'currentYieldBuffer' },
+      { address: ADDRESSES.vault, abi: vaultAbi, functionName: 'totalYieldBalance' }
+    ],
+    query: { refetchInterval: 15_000 }
+  })
+  const r = q.data
+  const g = <T,>(i: number, d: T): T => (r?.[i]?.result as T | undefined) ?? d
+  return {
+    totalAssets: g<bigint>(0, 0n),
+    totalSupply: g<bigint>(1, 0n),
+    availableYield: g<bigint>(2, 0n),
+    feeBalanceShares: g<bigint>(3, 0n),
+    feePct: Number(g<number>(4, 0)) / 1e9,
+    feeRecipient: g<Address>(5, '0x0000000000000000000000000000000000000000'),
+    owner: g<Address>(6, '0x0000000000000000000000000000000000000000'),
+    liquidationPair: g<Address>(7, '0x0000000000000000000000000000000000000000'),
+    yieldBuffer: g<bigint>(8, 0n),
+    totalYield: g<bigint>(9, 0n),
+    isLoading: q.isLoading,
+    refetch: q.refetch
+  }
+}
+
+/** Unique depositors + deposit count from vault Deposit events (Blockscout; best-effort) */
+export function useDepositorStats() {
+  return useQuery({
+    queryKey: ['depositorStats'],
+    refetchInterval: 60_000,
+    queryFn: async () => {
+      const topic0 = encodeEventTopics({ abi: vaultAbi, eventName: 'Deposit' })[0]!
+      const logs = await fetchLogsBlockscout({ address: ADDRESSES.vault, topic0 })
+      const owners = new Set<string>()
+      let deposits = 0
+      for (const l of logs) {
+        try {
+          const ev = decodeEventLog({ abi: vaultAbi, eventName: 'Deposit', data: l.data, topics: l.topics as [Hex, ...Hex[]] })
+          owners.add(ev.args.owner.toLowerCase()); deposits++
+        } catch {}
+      }
+      return { depositors: owners.size, deposits }
+    }
+  })
 }
 
 export function useEthPrice() {
