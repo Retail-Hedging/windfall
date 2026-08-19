@@ -4,7 +4,7 @@ import { formatUnits, parseUnits, type Address } from 'viem'
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useWriteContract } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
 import { ADDRESSES, BASESCAN, CABANA_VAULT_URL, CHAIN_ID, USDC_DECIMALS, erc20Abi, vaultAbi } from './config'
-import { useAaveApy, useAccountData, useActivity, useDepositorStats, useEthPrice, usePrizeInfo, useVaultStats } from './hooks'
+import { oddsFor, useAaveApy, useAccountData, useActivity, useDepositorStats, useEthPrice, usePrizeInfo, useVaultStats } from './hooks'
 import { config } from './wagmi'
 
 const fmtUsd = (n: number, d = 2) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })
@@ -213,7 +213,7 @@ function Dashboard({ address }: { address: Address }) {
           <button className={tab === 'deposit' ? 'tab on' : 'tab'} onClick={() => setTab('deposit')}>Deposit</button>
           <button className={tab === 'withdraw' ? 'tab on' : 'tab'} onClick={() => setTab('withdraw')}>Withdraw</button>
         </div>
-        {tab === 'deposit' ? <DepositForm acct={acct} tx={tx} /> : <WithdrawForm acct={acct} tx={tx} />}
+        {tab === 'deposit' ? <DepositForm acct={acct} tx={tx} prize={prize} apy={aave.apy} ethUsd={ethUsd} /> : <WithdrawForm acct={acct} tx={tx} />}
       </section>
 
       <DailyReveal prize={prize} activity={activity} balanceUsd={balanceUsd} ethUsd={ethUsd} apy={aave.apy} address={address} />
@@ -229,7 +229,7 @@ function Dashboard({ address }: { address: Address }) {
           <>
             <div className="odds-summary">
               <div>
-                <div className="label">Chance of winning something in the next draw</div>
+                <div className="label">Chance of a prize (1¢ or more) in the next draw</div>
                 <div className="big2">{oneIn(prize.anyPrizeChance)}</div>
               </div>
               <div>
@@ -413,7 +413,7 @@ function NextDraw({ closesAt, plain }: { closesAt?: number; plain?: boolean }) {
 
 // ---------- Deposit ----------
 
-function DepositForm({ acct, tx }: { acct: ReturnType<typeof useAccountData>; tx: ReturnType<typeof usePendingTx> }) {
+function DepositForm({ acct, tx, prize, apy, ethUsd }: { acct: ReturnType<typeof useAccountData>; tx: ReturnType<typeof usePendingTx>; prize: ReturnType<typeof usePrizeInfo>; apy: number; ethUsd: number }) {
   const [amt, setAmt] = useState('')
   const [err, setErr] = useState<string | null>(null)
   const { writeContractAsync } = useWriteContract()
@@ -422,6 +422,27 @@ function DepositForm({ acct, tx }: { acct: ReturnType<typeof useAccountData>; tx
   const tooMuch = value > acct.usdcBalance
   const busy = !!tx.pending
   const canSubmit = value > 0n && !tooMuch && !busy
+
+  // ---- odds calculator: current vs after this deposit ----
+  const addUsd = Number(formatUnits(value, USDC_DECIMALS))
+  const curBal = Number(formatUnits(acct.withdrawable, USDC_DECIMALS))
+  const curTvl = Number(formatUnits(acct.totalAssets, USDC_DECIMALS))
+  const newBal = curBal + addUsd, newTvl = curTvl + addUsd
+  const curShare = curTvl > 0 ? curBal / curTvl : 0
+  const newShare = newTvl > 0 ? newBal / newTvl : 0
+  // vault's share of the pool grows with TVL: rescale the (actual or projected) portion for the new TVL
+  const portionAt = (tvl: number) => {
+    if (prize.actualPortion > 0 && curTvl > 0) return Math.min(1, prize.actualPortion * (tvl / curTvl))
+    const poolDailyUsd = prize.totalContribWei > 0n && ethUsd ? (Number(formatUnits(prize.totalContribWei, 18)) / prize.drawsInWindow) * ethUsd : 0
+    if (!apy || !poolDailyUsd) return 0
+    const ours = (tvl * apy) / 365 * 0.9
+    return ours / (poolDailyUsd + ours)
+  }
+  const oddsNow = oddsFor(prize.tiers, portionAt(curTvl), curShare)
+  const oddsAfter = oddsFor(prize.tiers, portionAt(newTvl), newShare)
+  const monthly = (p: number) => 1 - Math.pow(1 - p, 30)
+  const evYear = (bal: number) => bal * apy * 0.9
+  const calcReady = prize.tiers.length > 0 && !prize.isLoading
 
   async function submit() {
     setErr(null)
@@ -454,6 +475,29 @@ function DepositForm({ acct, tx }: { acct: ReturnType<typeof useAccountData>; tx
       </div>
       <div className="fine">Available in wallet: {fmtUsdc(acct.usdcBalance)} USDC {acct.usdcBalance === 0n && <>· <a href="https://wallet.coinbase.com" target="_blank" rel="noopener">add USDC on Base with a card ↗</a></>}</div>
       {tooMuch && <div className="err">That's more USDC than your wallet holds.</div>}
+
+      <div className="calc">
+        <div className="calc-head">
+          <span className="label">What this deposit buys you</span>
+          <span className="chips">{[100, 1000, 10000].map((v) => <button key={v} className={'chip' + (addUsd === v ? ' on' : '')} onClick={() => setAmt(String(v))} disabled={busy}>{fmtUsd(v, 0)}</button>)}</span>
+        </div>
+        {!calcReady ? (
+          <div className="fine">Loading prize data…</div>
+        ) : (
+          <table className="calc-t">
+            <thead><tr><th></th><th>Now</th><th>After deposit</th></tr></thead>
+            <tbody>
+              <tr><td>Entries in every draw</td><td>{Math.floor(curBal).toLocaleString()}</td><td><b>{Math.floor(newBal).toLocaleString()}</b></td></tr>
+              <tr><td>Chance of a prize (1¢ or more) per draw</td><td>{oneIn(oddsNow.any)}</td><td><b>{oneIn(oddsAfter.any)}</b></td></tr>
+              <tr><td>Chance of a prize (1¢ or more) in a month</td><td>{oneIn(monthly(oddsNow.any))}</td><td><b>{oneIn(monthly(oddsAfter.any))}</b></td></tr>
+              <tr><td>Grand prize, per draw</td><td>{oneIn(oddsNow.grand)}</td><td><b>{oneIn(oddsAfter.grand)}</b></td></tr>
+              <tr><td>Expected prizes per year (long-run avg.)</td><td>{fmtUsd(evYear(curBal))}</td><td><b>{fmtUsd(evYear(newBal))}</b></td></tr>
+            </tbody>
+          </table>
+        )}
+        <div className="fine">Estimates. Odds scale with your balance; prizes are random, so any single year can be more or less than the average. {prize.isProjected ? 'Projected while the vault\'s first yield reaches the pool.' : ''}</div>
+      </div>
+
       <button className="btn primary wide" disabled={!canSubmit} onClick={submit}>
         {busy ? 'Working…' : acct.allowance < value && value > 0n ? 'Approve & deposit' : 'Deposit'}
       </button>

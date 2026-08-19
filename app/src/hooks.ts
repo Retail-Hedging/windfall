@@ -43,6 +43,7 @@ export interface TierInfo {
   prizeCount: number
   tierOdds: number // probability this tier is awarded in a draw
   perDrawChance: number // your chance of winning ≥1 prize of this tier in a draw
+  isCanary: boolean // protocol "canary" tiers: thousands of sub-cent calibration prizes; excluded from "won something"
 }
 
 /** Aave v3 USDC supply APY on Base (from currentLiquidityRate, ray = 1e27) */
@@ -135,11 +136,11 @@ export function usePrizeInfo(shareOfVault: number, opts?: { vaultTotalAssets?: b
     const perDrawChance = count > 0 ? 1 - Math.pow(1 - Math.min(pOne, 1), count) : 0
     const isCanary = t >= numTiers - 2
     const label = t === 0 ? 'Grand prize' : isCanary ? 'Micro prize' : `Tier ${t}`
-    return { tier: t, label, prizeSizeWei: size, prizeCount: count, tierOdds: odds, perDrawChance }
+    return { tier: t, label, prizeSizeWei: size, prizeCount: count, tierOdds: odds, perDrawChance, isCanary }
   })
 
   // chance of winning at least one prize of any tier in a draw
-  const anyPrizeChance = 1 - info.reduce((acc, t) => acc * (1 - t.perDrawChance), 1)
+  const anyPrizeChance = 1 - info.filter((t) => !t.isCanary).reduce((acc, t) => acc * (1 - t.perDrawChance), 1)
 
   return {
     numTiers,
@@ -159,6 +160,16 @@ export function usePrizeInfo(shareOfVault: number, opts?: { vaultTotalAssets?: b
     tiers: info,
     isLoading: base.isLoading || tiers.isLoading
   }
+}
+
+/** Pure odds math for a hypothetical share of the vault (used by the deposit calculator) */
+export function oddsFor(tiers: TierInfo[], vaultPortion: number, share: number) {
+  const per = tiers.map((t) => {
+    const pOne = t.tierOdds * vaultPortion * share
+    return t.prizeCount > 0 ? 1 - Math.pow(1 - Math.min(pOne, 1), t.prizeCount) : 0
+  })
+  const any = 1 - per.reduce((acc, p, i) => (tiers[i].isCanary ? acc : acc * (1 - p)), 1)
+  return { any, grand: per[0] ?? 0, perTier: per }
 }
 
 /** Vault-level stats for the /stats page */

@@ -76,6 +76,18 @@ h2{font-size:17px;font-weight:600;letter-spacing:-.01em}
 @keyframes fadeup{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 20px;border-top:1px solid var(--line);margin-top:16px;padding-top:14px}
 .counters .val{font-weight:600;font-size:17px}
+.calc{border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-top:14px;background:var(--bg-2)}
+.calc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.chips{display:flex;gap:6px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink-2);border-radius:999px;padding:3px 10px;font-size:12px;cursor:pointer;font-family:inherit}
+.chip.on,.chip:hover{border-color:var(--ink);color:var(--ink)}
+.chip:disabled{opacity:.5;cursor:not-allowed}
+.calc-t{width:100%;border-collapse:collapse;font-size:13px}
+.calc-t th{text-align:right;font-weight:500;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:4px 0}
+.calc-t th:first-child{text-align:left}
+.calc-t td{padding:6px 0;border-top:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.calc-t td:first-child{text-align:left;color:var(--ink-2);white-space:normal}
+.calc-t td b{color:var(--ink)}
 .pending-row{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:14px;padding:8px 0}
 .activity{width:100%;border-collapse:collapse;font-size:14px}
 .activity th{text-align:left;font-size:12px;color:var(--muted);font-weight:500;padding:6px;border-bottom:1px solid var(--line)}
