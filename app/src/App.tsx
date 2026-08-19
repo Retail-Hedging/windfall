@@ -12,6 +12,8 @@ const fmtUsdc = (v: bigint, d = 2) => fmtUsd(Number(formatUnits(v, USDC_DECIMALS
 const short = (a?: string) => (a ? a.slice(0, 6) + '…' + a.slice(-4) : '')
 const oneIn = (p: number) => (p <= 0 ? '—' : p >= 0.999 ? 'near-certain' : '1 in ' + Math.round(1 / p).toLocaleString())
 const pct = (p: number, d = 2) => (p * 100).toFixed(d) + '%'
+// Prize sizes: whole dollars above $10, cents to $0.01, otherwise fractions of a cent (e.g. 0.08¢) so micro-prizes never read as $0.00
+const fmtPrize = (usd: number) => usd >= 10 ? fmtUsd(usd, 0) : usd >= 0.01 ? fmtUsd(usd, 2) : usd > 0 ? (usd * 100).toPrecision(2).replace(/\.?0+$/, '') + '¢' : '$0'
 
 // ---------- tiny hash router ----------
 function useRoute() {
@@ -176,7 +178,7 @@ function Dashboard({ address }: { address: Address }) {
       {unseenPrizes.unseen.length > 0 && (
         <div className="banner won">
           <div>
-            <b>You won {ethUsd ? fmtUsd(unseenEth * ethUsd, unseenEth * ethUsd < 10 ? 2 : 0) : `${unseenEth.toFixed(5)} ETH`}</b>
+            <b>You won {ethUsd ? fmtPrize(unseenEth * ethUsd) : `${unseenEth.toFixed(5)} ETH`}</b>
             <div className="fine">{unseenPrizes.unseen.length} prize{unseenPrizes.unseen.length > 1 ? 's' : ''} since your last visit — paid to your wallet as ETH.</div>
           </div>
           <button className="link" onClick={unseenPrizes.dismiss}>Got it</button>
@@ -203,7 +205,7 @@ function Dashboard({ address }: { address: Address }) {
           <div className="stats">
             <Stat label="Deposited" value={fmtUsd(totalDeposited)} />
             <Stat label="Withdrawn" value={fmtUsd(totalWithdrawn)} />
-            <Stat label="Prizes won" value={prizesWonEth > 0 ? `${prizesWonEth.toFixed(5)} ETH` : '$0.00'} sub={prizesWonEth > 0 && ethUsd ? fmtUsd(prizesWonEth * ethUsd) : undefined} />
+            <Stat label="Prizes won" value={prizesWonEth > 0 && ethUsd ? fmtPrize(prizesWonEth * ethUsd) : prizesWonEth > 0 ? `${prizesWonEth.toFixed(6)} ETH` : '$0'} sub={prizesWonEth > 0 ? `${prizesWonEth.toFixed(6)} ETH` : undefined} />
             <Stat label="Your share of vault" value={pct(acct.shareOfVault)} sub={`Vault total ${fmtUsdc(acct.totalAssets, 0)}`} />
           </div>
         </div>
@@ -253,7 +255,7 @@ function Dashboard({ address }: { address: Address }) {
             return (
               <div className="tier" key={t.tier}>
                 <div className="tier-name">{t.label}</div>
-                <div className="tier-size">{ethUsd ? fmtUsd(usd, usd < 10 ? 2 : 0) : ethAmt.toFixed(4) + ' ETH'}</div>
+                <div className="tier-size">{ethUsd ? fmtPrize(usd) : ethAmt.toFixed(6) + ' ETH'}</div>
                 <div className="tier-meta">{t.prizeCount.toLocaleString()} prize{t.prizeCount === 1 ? '' : 's'} per draw · this tier pays out {t.tierOdds >= 0.999 ? 'every draw' : `about every ${Math.round(1 / Math.max(t.tierOdds, 1e-9))} draws`}</div>
                 <div className="tier-odds">Your odds per draw: <b>{oneIn(t.perDrawChance)}</b></div>
               </div>
@@ -280,7 +282,7 @@ function Dashboard({ address }: { address: Address }) {
                   <td className="when">{a.timestamp ? new Date(a.timestamp * 1000).toLocaleString() : 'block ' + a.blockNumber}</td>
                   <td>{a.kind === 'deposit' ? 'Deposit' : a.kind === 'withdraw' ? 'Withdrawal' : 'Prize won'}</td>
                   <td className={'amt ' + (a.kind === 'withdraw' ? 'neg' : 'pos')}>
-                    {a.kind === 'withdraw' ? '−' : '+'}{a.unit === 'USDC' ? fmtUsd(Number(a.amount)) : `${Number(a.amount).toFixed(5)} ETH`}
+                    {a.kind === 'withdraw' ? '−' : '+'}{a.unit === 'USDC' ? fmtUsd(Number(a.amount)) : (ethUsd ? fmtPrize(Number(a.amount) * ethUsd) + ` (${Number(a.amount).toFixed(6)} ETH)` : `${Number(a.amount).toFixed(6)} ETH`)}
                   </td>
                   <td><a href={`${BASESCAN}/tx/${a.txHash}`} target="_blank" rel="noopener">receipt ↗</a></td>
                 </tr>
@@ -358,7 +360,7 @@ function DailyReveal({ prize, activity, balanceUsd, ethUsd, apy, address }: { pr
         <div className={'reveal-result' + (wonEth > 0 ? ' won' : '')}>
           {wonEth > 0 ? (
             <>
-              <div className="big2">You won {ethUsd ? fmtUsd(wonEth * ethUsd, wonEth * ethUsd < 10 ? 2 : 0) : `${wonEth.toFixed(5)} ETH`}</div>
+              <div className="big2">You won {ethUsd ? fmtPrize(wonEth * ethUsd) : `${wonEth.toFixed(5)} ETH`}</div>
               <div className="fine">{wins.length} prize{wins.length > 1 ? 's' : ''} · {wins.map((w) => (w.tier === 0 ? 'grand prize' : `tier ${w.tier}`)).join(', ')} · paid to your wallet as ETH.</div>
             </>
           ) : (
@@ -564,7 +566,7 @@ function StatsPage() {
               return (
                 <tr key={t.tier}>
                   <td>{t.label}</td>
-                  <td>{fmtUsd(usd, usd < 10 ? 2 : 0)}</td>
+                  <td>{fmtPrize(usd)}</td>
                   <td>{t.prizeCount.toLocaleString()}</td>
                   <td>{t.tierOdds >= 0.999 ? 'every draw' : `1 in ${Math.round(1 / t.tierOdds)} draws`}</td>
                   <td>{oneIn(perDollar)}</td>
