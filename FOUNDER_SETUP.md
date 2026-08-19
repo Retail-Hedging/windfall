@@ -1,5 +1,26 @@
 # Founder setup — deploy the Windfall vault (Base, Aave USDC, 10% yield fee)
 
+## DEPLOYED 2026-08-18
+
+| | Address |
+|---|---|
+| Windfall USDC prize vault | `0x0ee63210597564db524a7b1f7502781bf19c832f` |
+| Liquidation pair | `0xbd082d5ccb7927bdeb1b9bd1a521cf22ab6bd5f0` |
+| Owner / fee recipient | `0x41037a5cd13f6ae0358de05a390eaa169b430dbf` |
+| Yield vault | `0xC768c589647798a6EE01A91FdE98EF2ed046DBD6` (Aave waBasUSDC) |
+| Fee | 10% (`100000000` / 1e9) |
+
+Cabana page: https://app.cabana.fi/vault/8453/0x0ee63210597564db524a7b1f7502781bf19c832f
+
+Deployed with the factory app run locally from `pooltogether-client-monorepo` (see below). Two upstream bugs
+had to be patched locally: (1) `token-prices.api.cabana.fi` no longer resolves — target auction price now
+comes from CoinGecko with a fallback; (2) `DeployVaultButton` / `DeployLiquidationPairButton` read
+`logs[0]`, which for ERC-4337 smart wallets is the EntryPoint — now decode `NewPrizeVault` / `PairCreated`
+across all logs. A stray pair `0xff4a…9762` (source = EntryPoint) was created before the fix; ignore it.
+
+---
+
+
 Do this once. Needs a wallet with ~$15 of ETH on Base and $0.10 USDC. The old no-code UI at
 `factory.cabana.fi` is gone (NXDOMAIN as of 2026-08-18), so run the same UI locally (Option A)
 or call the factory contract directly (Option B).
