@@ -1,0 +1,58 @@
+:root{
+  --bg:#f4f6fa;--panel:#ffffff;--line:#e3e7ef;--text:#0f172a;--muted:#5b6478;
+  --accent:#0f8a5f;--accent-ink:#ffffff;--accent2:#b45309;--danger:#b91c1c;--pos:#0f8a5f;--neg:#b91c1c;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0b0d12;--panel:#12151d;--line:#1f2432;--text:#e8ebf2;--muted:#8b93a7;--accent:#7cf5c8;--accent-ink:#06251b;--accent2:#ffd166;--danger:#ff7b7b;--pos:#7cf5c8;--neg:#ff7b7b}
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:900px;margin:0 auto;padding:0 18px 60px}
+header{display:flex;justify-content:space-between;align-items:center;padding:20px 0}
+.logo{font-weight:800;font-size:20px;text-decoration:none;color:var(--text)}
+.logo span{color:var(--accent)}
+.acct{display:flex;gap:12px;align-items:center}
+.pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:var(--panel)}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.hero{text-align:center;padding:48px 24px}
+.hero h1{font-size:30px;margin-bottom:8px}
+.hero h2{font-size:24px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.fine{color:var(--muted);font-size:13px;margin-top:8px}
+.err{color:var(--danger);font-size:14px;margin-top:8px}
+.btnrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:22px}
+.btn{display:inline-block;padding:13px 20px;border-radius:12px;font-weight:700;border:1px solid transparent;cursor:pointer;font-size:16px;background:var(--panel);color:var(--text)}
+.btn.primary{background:var(--accent);color:var(--accent-ink)}
+.btn.ghost{border-color:var(--line)}
+.btn.wide{width:100%;margin-top:14px}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.link{background:none;border:none;color:var(--accent);cursor:pointer;font-size:14px;padding:0}
+.balance .bal-top{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.big{font-size:44px;font-weight:800;letter-spacing:-1px;margin:4px 0}
+.stats{display:grid;grid-template-columns:repeat(2,minmax(120px,1fr));gap:12px 24px}
+.stat .val{font-weight:700;font-size:18px}
+.tabs{display:flex;gap:6px;margin:22px 0 14px;border-bottom:1px solid var(--line)}
+.tab{background:none;border:none;padding:10px 14px;font-weight:700;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;font-size:15px}
+.tab.on{color:var(--text);border-bottom-color:var(--accent)}
+.form label{font-size:13px;color:var(--muted)}
+.amt-row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-top:6px;background:var(--bg)}
+.amt-row input{flex:1;border:none;background:transparent;font-size:26px;font-weight:700;color:var(--text);outline:none;min-width:0}
+.sec-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+h2{font-size:19px}
+.tiers{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px}
+.tier{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--bg)}
+.tier-name{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tier-size{font-size:24px;font-weight:800;color:var(--accent2)}
+.tier-meta{font-size:12px;color:var(--muted)}
+.tier-odds{font-size:14px;margin-top:6px}
+.activity{width:100%;border-collapse:collapse;font-size:14px}
+.activity td{padding:10px 6px;border-top:1px solid var(--line)}
+.activity .when{color:var(--muted);white-space:nowrap}
+.activity .amt{text-align:right;font-weight:700;white-space:nowrap}
+.amt.pos{color:var(--pos)} .amt.neg{color:var(--neg)}
+footer{color:var(--muted);font-size:12px;margin-top:20px}
+footer p{margin-bottom:6px}
+@media (max-width:600px){.big{font-size:36px}.stats{grid-template-columns:1fr 1fr}}
