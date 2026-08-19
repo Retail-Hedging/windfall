@@ -3,202 +3,112 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Windfall — Savings with a shot at 100x</title>
-<meta name="description" content="Deposit stablecoins. Keep your principal. Every week your deposit enters a prize draw funded by pooled yield. Withdraw anytime.">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
-<style>
-  :root{
-    --bg:#0b0d12;--panel:#12151d;--line:#1f2432;--text:#e8ebf2;--muted:#8b93a7;
-    --accent:#7cf5c8;--accent2:#ffd166;--danger:#ff7b7b;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--bg);color:var(--text);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,Inter,sans-serif}
-  a{color:var(--accent)}
-  .wrap{max-width:960px;margin:0 auto;padding:0 20px}
-  header{padding:22px 0;display:flex;justify-content:space-between;align-items:center}
-  .logo{font-weight:800;letter-spacing:.5px;font-size:20px}
-  .logo span{color:var(--accent)}
-  nav a{color:var(--muted);text-decoration:none;margin-left:18px;font-size:14px}
-  .hero{padding:70px 0 40px;text-align:center}
-  .hero h1{font-size:clamp(34px,6vw,60px);line-height:1.08;font-weight:850;letter-spacing:-1px}
-  .hero h1 em{font-style:normal;color:var(--accent)}
-  .hero p.sub{color:var(--muted);font-size:19px;max-width:640px;margin:18px auto 0}
-  .cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:30px}
-  .btn{display:inline-block;padding:14px 22px;border-radius:12px;font-weight:700;text-decoration:none;border:1px solid transparent;cursor:pointer;font-size:16px}
-  .btn.primary{background:var(--accent);color:#06251b}
-  .btn.ghost{border-color:var(--line);color:var(--text);background:var(--panel)}
-  .pill{display:inline-block;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;margin-bottom:16px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin:40px 0}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:22px}
-  .card h3{font-size:17px;margin-bottom:8px}
-  .card p{color:var(--muted);font-size:15px}
-  .num{font-size:34px;font-weight:800;color:var(--accent2)}
-  section{padding:30px 0}
-  h2{font-size:26px;margin-bottom:14px}
-  .steps{counter-reset:s;display:grid;gap:14px}
-  .step{display:flex;gap:14px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .step::before{counter-increment:s;content:counter(s);flex:0 0 32px;height:32px;border-radius:50%;background:var(--accent);color:#06251b;font-weight:800;display:flex;align-items:center;justify-content:center}
-  .step p{color:var(--muted)}
-  form.wait{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px}
-  form.wait input{flex:1 1 260px;max-width:360px;padding:14px;border-radius:12px;border:1px solid var(--line);background:#0e1118;color:var(--text);font-size:16px}
-  .fine{color:var(--muted);font-size:13px;margin-top:10px;text-align:center}
-  .warn{border-left:3px solid var(--danger);padding:12px 16px;background:#161018;border-radius:8px;color:#e6c9c9;font-size:14px}
-  footer{padding:40px 0 60px;color:var(--muted);font-size:13px;border-top:1px solid var(--line);margin-top:40px}
-  footer p{margin-bottom:8px}
-  .calc{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center}
-  .calc input[type=range]{width:100%}
-  @media (max-width:600px){.calc{grid-template-columns:1fr}}
-</style>
+<title>Windfall — Prize savings on Base</title>
+<meta name="description" content="Keep your principal. Your deposit's yield funds daily prize draws. Non-custodial, withdraw anytime. Built by Retail Hedging on PoolTogether.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="rh-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round">
+    <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z"/><path d="M3.5 7 12 11.5 20.5 7M12 11.5v10"/>
+  </symbol>
+</svg>
 <div class="wrap">
-  <header>
-    <div class="logo">Wind<span>fall</span></div>
-    <nav><a href="#how">How it works</a><a href="#odds">Odds</a><a href="#faq">FAQ</a><a href="#deposit">Deposit</a></nav>
+  <header class="hdr">
+    <a class="brand" href="./"><svg class="mark"><use href="#rh-cube"/></svg>Windfall<small>by Retail Hedging</small></a>
+    <nav class="nav">
+      <a href="about.html">How it works</a>
+      <a href="app/#/stats">Vault stats</a>
+      <a class="cta" href="app/">Open account</a>
+    </nav>
   </header>
 
   <section class="hero">
-    <div class="pill">Non-custodial · Withdraw anytime · Built on PoolTogether</div>
-    <h1>Savings that keep your principal.<br><em>With a shot at 100x.</em></h1>
-    <p class="sub">Deposit stablecoins. Your money earns yield in a lending pool. Instead of paying you a boring 4%, that yield funds weekly prize draws. Win big, or take your deposit back any time.</p>
-    <div class="cta">
-      <a class="btn primary" id="depositBtn" href="app/">Open my account →</a>
-      <a class="btn ghost" href="#waitlist">Join the waitlist</a>
+    <div class="eyebrow">Prize savings · USDC on Base</div>
+    <h1 style="margin-top:12px">Keep every dollar you put in.<br>Let the interest buy you a shot at the jackpot.</h1>
+    <p class="lede">Windfall pools the interest from everyone's deposits into daily prize draws instead of paying it out evenly. Your principal is never at stake. Withdraw at any time.</p>
+    <div class="row" style="margin-top:28px">
+      <a class="btn primary" href="app/">Open account</a>
+      <a class="btn" href="about.html">How it works</a>
+    </div>
+    <p class="fine" style="margin-top:14px">Sign in with a passkey. No seed phrases, no exchange account required. Deposits from $1.</p>
+  </section>
+
+  <section>
+    <div class="grid c3">
+      <div class="kv"><div class="n">100%</div><div class="l">of your deposit stays yours. Only the interest is put into play.</div></div>
+      <div class="kv"><div class="n">Daily</div><div class="l">prize draws, run on-chain by the PoolTogether protocol.</div></div>
+      <div class="kv"><div class="n">Anytime</div><div class="l">withdrawals. No lock-ups, no penalties, no minimum term.</div></div>
     </div>
   </section>
 
-  <div class="grid">
-    <div class="card"><div class="num">100%</div><h3>Principal stays yours</h3><p>You never lose your deposit. Only the pooled yield is at stake. Smart contract, not a bank — you hold the keys.</p></div>
-    <div class="card"><div class="num">Weekly</div><h3>Prize draws</h3><p>Every week, on-chain randomness picks winners. More deposit, more entries. Prizes range from small to the shared grand prize.</p></div>
-    <div class="card"><div class="num">$1</div><h3>Minimum</h3><p>Runs on Base, so gas costs pennies. Try it with a dollar. Withdraw whenever you like.</p></div>
-  </div>
-
-  <section id="how">
-    <h2>How it works</h2>
-    <div class="steps">
-      <div class="step"><div><b>Deposit USDC into the Windfall vault.</b><p>Your wallet sends USDC straight to an audited PoolTogether prize vault. We never touch it.</p></div></div>
-      <div class="step"><div><b>The vault lends your USDC.</b><p>Deposits earn yield in <span class="yieldSrc">a blue-chip lending market</span> on Base. That yield — not your principal — flows into the prize pool.</p></div></div>
-      <div class="step"><div><b>Weekly draws pick winners.</b><p>Chainlink VRF randomness. Your odds scale with your balance. Winners' prizes land in their wallet automatically.</p></div></div>
-      <div class="step"><div><b>Withdraw anytime.</b><p>Burn your vault shares, get your USDC back. No lockups, no penalties.</p></div></div>
+  <section>
+    <div class="grid c2">
+      <div>
+        <div class="eyebrow">In short</div>
+        <h2 style="margin-top:8px">How Windfall works</h2>
+        <p>Windfall is a non-custodial vault. Your USDC goes from your wallet into a smart contract; the contract lends it on Aave, one of the largest lending markets in crypto. The interest is swapped into the shared PoolTogether prize pool, and every day the protocol draws winners at random. More on deposit, more entries.</p>
+        <p style="margin-top:12px"><a href="about.html">Read the full explanation →</a></p>
+      </div>
+      <ol class="steps">
+        <li><div><b>Open an account</b>A passkey creates a wallet in your browser in about 30 seconds.</div></li>
+        <li><div><b>Add USDC</b>Buy with a debit card inside the wallet, or send from an exchange, on the Base network.</div></li>
+        <li><div><b>Deposit</b>Your balance appears in your account immediately and starts earning entries.</div></li>
+        <li><div><b>Win or withdraw</b>Prizes are paid to your account automatically. Take your money out whenever you like.</div></li>
+      </ol>
     </div>
   </section>
 
-  <section id="odds">
-    <h2>What are my odds?</h2>
-    <div class="card">
-      <div class="calc">
-        <div>
-          <label for="dep">Your deposit: <b id="depVal">$100</b></label>
-          <input id="dep" type="range" min="1" max="10000" value="100" step="1">
-        </div>
-        <div>
-          <label for="tvl">Total in vault: <b id="tvlVal">$50,000</b></label>
-          <input id="tvl" type="range" min="1000" max="10000000" value="50000" step="1000">
-        </div>
+  <section>
+    <div class="grid c2">
+      <div>
+        <h2>What it costs</h2>
+        <p>Nothing up front. Windfall keeps 10% of the interest the vault earns; the other 90% goes into the prize pool. You never pay a fee out of your deposit, and there are no withdrawal fees beyond the network's transaction cost — a fraction of a cent on Base.</p>
       </div>
-      <p style="margin-top:14px" id="oddsOut"></p>
-      <p class="fine" style="text-align:left">Illustrative only. Assumes ~4% APY on the pool, all yield to prizes, one grand prize per year plus weekly small prizes. Real prize structure is set by the PoolTogether protocol and changes with pool size.</p>
-    </div>
-  </section>
-
-  <section id="deposit">
-    <h2>Deposit</h2>
-    <div class="card">
-      <p id="depositCopy">Open your Windfall account: sign in with a passkey (no seed phrase), then deposit or withdraw right there. Your account page shows your balance, the prizes you're in the running for, and every transaction.</p>
-      <div class="steps" style="margin:16px 0">
-        <div class="step"><div><b>Sign in / create account.</b><p>Click the button below → "Sign in". A Coinbase Smart Wallet is created with Face ID / Windows Hello in about 30 seconds. No seed phrase, no extension.</p></div></div>
-        <div class="step"><div><b>Add USDC on Base.</b><p>If your balance is empty, the account page links you to buy USDC with a debit card (choose the <b>Base</b> network). $5–10 is plenty for a test.</p></div></div>
-        <div class="step"><div><b>Deposit. Withdraw anytime.</b><p>Enter an amount → Deposit → approve. Withdraw returns USDC to your wallet immediately.</p></div></div>
+      <div>
+        <h2>What could go wrong</h2>
+        <p>This is not a bank account and is not insured. Your money sits in audited smart contracts (PoolTogether, Aave) and in USDC, a dollar-backed stablecoin. A bug in those contracts, a failure of USDC, or a problem with the Base network could result in loss. Deposit only what you can afford to lose. <a href="about.html#risks">Full risk notes</a>.</p>
       </div>
-      <div class="cta" style="justify-content:flex-start">
-        <a class="btn primary" href="app/">Open my account →</a>
-        <a class="btn ghost" id="depositLink" href="#" target="_blank" rel="noopener">View vault on Cabana ↗</a>
-      </div>
-      <p class="fine" style="text-align:left;margin-top:14px" id="vaultNote"></p>
     </div>
   </section>
 
   <section id="waitlist">
-    <h2>Not on crypto yet? Get the card-to-deposit version first.</h2>
-    <p style="color:var(--muted)">We're building a version where you deposit with a debit card and never see a wallet. Leave your email.</p>
-    <form class="wait" action="https://formsubmit.co/pfelizarta@retailhedging.com" method="POST">
+    <h2>Prefer to be told when it's ready for everyone?</h2>
+    <p style="max-width:560px">Windfall is in a limited early release. Leave an email and we'll notify you at general launch. Nothing else.</p>
+    <form class="wait" style="margin-top:16px" action="https://formsubmit.co/pfelizarta@retailhedging.com" method="POST">
       <input type="hidden" name="_subject" value="Windfall waitlist signup">
       <input type="hidden" name="_captcha" value="false">
       <input type="hidden" name="_next" id="nextUrl" value="">
       <input type="text" name="_honey" style="display:none">
       <input type="email" name="email" placeholder="you@email.com" required>
-      <button class="btn primary" type="submit">Join waitlist</button>
+      <button class="btn primary" type="submit">Notify me</button>
     </form>
-    <p class="fine">No spam. One email when it's live.</p>
   </section>
-
-  <section id="faq">
-    <h2>FAQ</h2>
-    <div class="steps" style="counter-reset:none">
-      <div class="card"><h3>Is my deposit guaranteed?</h3><p>No. Nothing here is guaranteed by anyone. Your USDC sits in a smart contract that lends to <span class="yieldSrc">a lending market</span>. Smart-contract bugs, stablecoin depeg, or lending-protocol failure could lose funds. Only deposit what you can afford to lose.</p></div>
-      <div class="card"><h3>Do I earn interest?</h3><p>Not directly. All yield goes to the prize pool. Your expected value roughly equals the yield you'd have earned — it's just paid out as prizes to random depositors instead of evenly.</p></div>
-      <div class="card"><h3>Who holds my money?</h3><p>You do. It's a non-custodial vault. Windfall never has access to your funds. We earn a small percentage of the yield as a fee.</p></div>
-      <div class="card"><h3>Is this a lottery?</h3><p>It's prize-linked savings on the PoolTogether protocol. You don't buy tickets and you keep your principal. Check your local laws; not available where prohibited.</p></div>
-    </div>
-  </section>
-
-  <div class="warn" style="margin-top:30px">
-    <b>Risk notice.</b> Windfall is an early experiment. Not a bank, not FDIC/NCUA insured, not investment advice, no guarantee of return or principal. Uses third-party smart contracts (PoolTogether, Aave, Chainlink) and stablecoins (USDC). Not offered where prohibited by law.
-  </div>
 
   <footer>
-    <p>© <span id="yr"></span> Windfall. Built on <a href="https://pooltogether.com" target="_blank" rel="noopener">PoolTogether V5</a> via <a href="https://cabana.fi" target="_blank" rel="noopener">Cabana</a>.</p>
-    <p><a href="https://github.com/Retail-Hedging/windfall" target="_blank" rel="noopener">Source</a></p>
+    <div class="links">
+      <a href="about.html">How it works</a>
+      <a href="about.html#risks">Risks</a>
+      <a href="app/#/stats">Vault stats</a>
+      <a href="https://github.com/Retail-Hedging/windfall" target="_blank" rel="noopener">Source</a>
+      <a href="https://basescan.org/address/0x0ee63210597564db524a7b1f7502781bf19c832f" target="_blank" rel="noopener">Vault contract</a>
+    </div>
+    <p>Windfall is operated by Retail Hedging. It is a non-custodial interface to a PoolTogether V5 prize vault on Base. Not a bank; not FDIC or NCUA insured; not investment advice; no guarantee of returns or principal. Not available where prohibited by law.</p>
+    <p>© <span id="yr"></span> Retail Hedging.</p>
   </footer>
 </div>
-
 <script>
-  // === CONFIG: set after deploying the vault via https://factory.cabana.fi ===
-  const CHAIN_ID = 8453;               // Base
-  const VAULT_ADDRESS = "0x0ee63210597564db524a7b1f7502781bf19c832f"; // Windfall USDC prize vault (Base)
-  const VAULT_YIELD_SOURCE = "Aave v3"; // yield source of the Windfall vault once deployed
-  const CABANA_APP = "https://app.cabana.fi";
-  // Fallback until then: PoolTogether's official Prize USDC vault on Base (0% fee, lends to Moonwell)
-  const FALLBACK_VAULT = "0x7f5C2b379b88499aC2B997Db583f8079503f25b9";
-  const FALLBACK_YIELD_SOURCE = "Moonwell";
-  // ==========================================================================
-
   document.getElementById('yr').textContent = new Date().getFullYear();
   document.getElementById('nextUrl').value = location.origin + location.pathname + '?joined=1#waitlist';
   if (new URLSearchParams(location.search).get('joined')) {
-    document.querySelector('#waitlist h2').textContent = "You're on the list. We'll email you when card deposits are live.";
-    document.querySelector('form.wait').style.display = 'none';
+    var s = document.getElementById('waitlist');
+    s.querySelector('h2').textContent = "You're on the list.";
+    s.querySelector('p').textContent = "We'll email you once at general launch.";
+    s.querySelector('form').remove();
   }
-
-  const link = document.getElementById('depositLink');
-  const note = document.getElementById('vaultNote');
-  const activeVault = VAULT_ADDRESS || FALLBACK_VAULT;
-  const activeSrc = VAULT_ADDRESS ? VAULT_YIELD_SOURCE : FALLBACK_YIELD_SOURCE;
-  link.href = `${CABANA_APP}/vault/${CHAIN_ID}/${activeVault}`;
-  document.querySelectorAll('.yieldSrc').forEach(el => el.textContent = activeSrc);
-  note.textContent = VAULT_ADDRESS
-    ? `Windfall vault: ${VAULT_ADDRESS} on Base (yield via ${VAULT_YIELD_SOURCE}). Verify the address in the URL matches before depositing.`
-    : `Windfall's own vault is being deployed. Until then this opens PoolTogether's official Prize USDC vault on Base — ${FALLBACK_VAULT} — same mechanics, yield via ${FALLBACK_YIELD_SOURCE}, no Windfall fee. Verify the address in the URL matches.`;
-
-  // odds calculator
-  const dep = document.getElementById('dep'), tvl = document.getElementById('tvl');
-  const fmt = n => '$' + Number(n).toLocaleString();
-  function calc(){
-    const d = +dep.value, t = Math.max(+tvl.value, d);
-    document.getElementById('depVal').textContent = fmt(d);
-    document.getElementById('tvlVal').textContent = fmt(t);
-    const apy = 0.04;
-    const yearlyYield = t * apy;
-    const grand = yearlyYield * 0.5;                 // half of yield → one grand prize/yr
-    const weeklyPool = (yearlyYield * 0.5) / 52;     // other half → weekly small prizes
-    const pGrand = d / t;                            // one winner per year
-    const mult = grand / d;
-    const oneIn = Math.round(1 / pGrand);
-    document.getElementById('oddsOut').innerHTML =
-      `Grand prize ≈ <b>${fmt(Math.round(grand))}</b> (${mult.toFixed(0)}× your deposit). Your chance this year ≈ <b>1 in ${oneIn.toLocaleString()}</b>. ` +
-      `Weekly prize pool ≈ <b>${fmt(Math.round(weeklyPool))}</b> split among several winners.`;
-  }
-  dep.oninput = tvl.oninput = calc; calc();
 </script>
 </body>
 </html>

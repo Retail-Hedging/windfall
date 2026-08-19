@@ -31,9 +31,13 @@ export function App() {
   return (
     <div className="wrap">
       <header>
-        <a className="logo" href="/windfall/">Wind<span>fall</span></a>
+        <a className="logo" href="/windfall/">
+          <CubeMark />
+          Windfall<small>by Retail Hedging</small>
+        </a>
         <nav className="nav">
-          <a href="#/" className={route === 'account' ? 'on' : ''}>My account</a>
+          <a href="/windfall/about.html">How it works</a>
+          <a href="#/" className={route === 'account' ? 'on' : ''}>Account</a>
           <a href="#/stats" className={route === 'stats' ? 'on' : ''}>Vault stats</a>
           <ConnectControls />
         </nav>
@@ -48,10 +52,19 @@ export function App() {
         <Dashboard address={address!} />
       )}
       <footer>
-        <p>Windfall is a non-custodial prize-savings vault on Base built on PoolTogether V5. Yield from Aave v3 funds daily prize draws. Not a bank, not FDIC insured, no guaranteed returns; smart-contract and stablecoin risk apply.</p>
+        <p>Windfall is operated by Retail Hedging: a non-custodial interface to a PoolTogether V5 prize vault on Base; yield from Aave v3 funds daily prize draws. Not a bank; not FDIC or NCUA insured; no guaranteed returns; smart-contract and stablecoin risk apply. <a href="/windfall/about.html#risks">Risks</a></p>
         <p>Vault <a href={`${BASESCAN}/address/${ADDRESSES.vault}`} target="_blank" rel="noopener">{ADDRESSES.vault}</a> · <a href={CABANA_VAULT_URL} target="_blank" rel="noopener">View on Cabana</a></p>
       </footer>
     </div>
+  )
+}
+
+function CubeMark() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2.5 20.5 7v10L12 21.5 3.5 17V7z" />
+      <path d="M3.5 7 12 11.5 20.5 7M12 11.5v10" />
+    </svg>
   )
 }
 
@@ -73,8 +86,8 @@ function Landing() {
   const injected = connectors.find((c) => c.id === 'injected')
   return (
     <section className="hero card">
-      <h1>Your Windfall account</h1>
-      <p className="muted">Sign in with a passkey to see your balance, deposit or withdraw, and check the prizes you're in the running for.</p>
+      <h1>Account</h1>
+      <p className="muted">Sign in with a passkey to see your balance, deposit or withdraw, and check your odds. New here? The same button creates your account.</p>
       <div className="btnrow">
         {coinbase && (
           <button className="btn primary" disabled={isPending} onClick={() => connect({ connector: coinbase })}>
@@ -252,7 +265,7 @@ function Dashboard({ address }: { address: Address }) {
               {activity.data.map((a) => (
                 <tr key={a.txHash + a.kind + a.amount}>
                   <td className="when">{a.timestamp ? new Date(a.timestamp * 1000).toLocaleString() : 'block ' + a.blockNumber}</td>
-                  <td>{a.kind === 'deposit' ? 'Deposit' : a.kind === 'withdraw' ? 'Withdrawal' : 'Prize won 🎉'}</td>
+                  <td>{a.kind === 'deposit' ? 'Deposit' : a.kind === 'withdraw' ? 'Withdrawal' : 'Prize won'}</td>
                   <td className={'amt ' + (a.kind === 'withdraw' ? 'neg' : 'pos')}>
                     {a.kind === 'withdraw' ? '−' : '+'}{a.unit === 'USDC' ? fmtUsd(Number(a.amount)) : `${Number(a.amount).toFixed(5)} ETH`}
                   </td>
