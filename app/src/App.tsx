@@ -4,7 +4,7 @@ import { formatUnits, parseUnits, type Address } from 'viem'
 import { useAccount, useConnect, useDisconnect, useSwitchChain, useWriteContract } from 'wagmi'
 import { waitForTransactionReceipt } from 'wagmi/actions'
 import { ADDRESSES, BASESCAN, CABANA_VAULT_URL, CHAIN_ID, USDC_DECIMALS, erc20Abi, vaultAbi } from './config'
-import { oddsFor, useAaveApy, useAccountData, useActivity, useDepositorStats, useEthPrice, usePrizeInfo, useVaultStats } from './hooks'
+import { oddsFor, useAaveApy, useAccountData, useActivity, useBalancesFor, useDepositorLedger, useDepositorStats, useEthPrice, usePrizeInfo, useVaultStats } from './hooks'
 import { config } from './wagmi'
 
 const fmtUsd = (n: number, d = 2) => '$' + n.toLocaleString(undefined, { minimumFractionDigits: d, maximumFractionDigits: d })
@@ -635,6 +635,7 @@ function StatsPage() {
         </table>
       </section>
 
+      {(isOwner || isRecipient) && <DepositorsPanel enabled={isOwner || isRecipient} />}
       {(isOwner || isRecipient) && <OwnerPanel s={s} isOwner={isOwner} isRecipient={isRecipient} />}
       {!address && <p className="fine">Sign in as the vault owner to see admin actions.</p>}
     </>
@@ -647,6 +648,66 @@ function Row({ k, v }: { k: string; v: string }) {
       <td className="when">{k}</td>
       <td className="mono"><a href={`${BASESCAN}/address/${v}`} target="_blank" rel="noopener">{v}</a></td>
     </tr>
+  )
+}
+
+function DepositorsPanel({ enabled }: { enabled: boolean }) {
+  const ledger = useDepositorLedger(enabled)
+  const rows = ledger.data ?? []
+  const owners = rows.map((r) => r.owner)
+  const { balances } = useBalancesFor(owners)
+  const [sort, setSort] = useState<'balance' | 'deposited' | 'last'>('balance')
+  const withBal = rows.map((r) => ({ ...r, balance: balances[r.owner.toLowerCase()] ?? NaN }))
+  const active = withBal.filter((r) => r.balance > 0.000001)
+  const totalBal = active.reduce((s, r) => s + r.balance, 0)
+  const totalIn = rows.reduce((s, r) => s + r.deposited, 0)
+  const totalOut = rows.reduce((s, r) => s + r.withdrawn, 0)
+  const largest = active.reduce((m, r) => Math.max(m, r.balance), 0)
+  const median = (() => { const a = active.map((r) => r.balance).sort((x, y) => x - y); return a.length ? a[Math.floor(a.length / 2)] : 0 })()
+  const sorted = [...withBal].sort((a, b) => sort === 'balance' ? (b.balance || 0) - (a.balance || 0) : sort === 'deposited' ? b.deposited - a.deposited : (b.lastTs ?? b.lastBlock) - (a.lastTs ?? a.lastBlock))
+  const csv = () => {
+    const lines = [['address', 'balance_usdc', 'deposited_usdc', 'withdrawn_usdc', 'deposits', 'withdrawals', 'first_deposit', 'last_activity'].join(',')]
+    for (const r of sorted) lines.push([r.owner, r.balance.toFixed(6), r.deposited.toFixed(6), r.withdrawn.toFixed(6), r.deposits, r.withdrawals, r.firstTs ? new Date(r.firstTs * 1000).toISOString() : '', r.lastTs ? new Date(r.lastTs * 1000).toISOString() : ''].join(','))
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'windfall-depositors.csv'; a.click()
+  }
+  return (
+    <section className="card admin">
+      <div className="sec-head">
+        <h2>Depositors</h2>
+        <span className="fine">Owner view · built from on-chain Deposit/Withdraw events · refreshes every minute</span>
+      </div>
+      <div className="grid4" style={{ marginBottom: 14 }}>
+        <Stat label="Active depositors" value={ledger.isLoading ? '…' : String(active.length)} sub={`${rows.length} ever deposited`} />
+        <Stat label="Total balances" value={fmtUsd(totalBal)} sub={`in ${fmtUsd(totalIn)} · out ${fmtUsd(totalOut)}`} />
+        <Stat label="Average balance" value={active.length ? fmtUsd(totalBal / active.length) : '—'} sub={`median ${fmtUsd(median)}`} />
+        <Stat label="Largest balance" value={fmtUsd(largest)} sub={totalBal > 0 ? `${pct(largest / totalBal, 0)} of vault` : undefined} />
+      </div>
+      <div className="sec-head">
+        <span className="fine">Sort by: {(['balance', 'deposited', 'last'] as const).map((k) => <button key={k} className={'chip' + (sort === k ? ' on' : '')} style={{ marginLeft: 6 }} onClick={() => setSort(k)}>{k === 'last' ? 'last activity' : k}</button>)}</span>
+        <button className="link" onClick={csv} disabled={!rows.length}>Download CSV</button>
+      </div>
+      {ledger.isLoading ? <p className="muted">Loading ledger…</p> : !rows.length ? <p className="muted">No deposits yet.</p> : (
+        <div style={{ overflowX: 'auto' }}>
+          <table className="activity">
+            <thead><tr><th>Address</th><th style={{ textAlign: 'right' }}>Balance</th><th style={{ textAlign: 'right' }}>Deposited</th><th style={{ textAlign: 'right' }}>Withdrawn</th><th style={{ textAlign: 'right' }}>Txs</th><th>First deposit</th><th>Last activity</th></tr></thead>
+            <tbody>
+              {sorted.map((r) => (
+                <tr key={r.owner}>
+                  <td className="mono"><a href={`${BASESCAN}/address/${r.owner}`} target="_blank" rel="noopener">{short(r.owner)}</a></td>
+                  <td className="amt">{Number.isNaN(r.balance) ? '…' : fmtUsd(r.balance)}</td>
+                  <td className="amt pos">{fmtUsd(r.deposited)}</td>
+                  <td className="amt neg">{r.withdrawn ? fmtUsd(r.withdrawn) : '—'}</td>
+                  <td className="amt">{r.deposits + r.withdrawals}</td>
+                  <td className="when">{r.firstTs ? new Date(r.firstTs * 1000).toLocaleDateString() : '—'}</td>
+                  <td className="when">{r.lastTs ? new Date(r.lastTs * 1000).toLocaleString() : 'block ' + r.lastBlock}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+      <p className="fine">Addresses are public on Base; this view is gated only for convenience. The fee recipient's own address will appear here once fees are claimed as shares.</p>
+    </section>
   )
 }
 
